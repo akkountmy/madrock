@@ -26,21 +26,25 @@
     </nav>
 
     <div class="hdr__act">
-      <span class="status" id="status" title="Часы работы">
-        <i class="status__dot"></i><span id="status-txt">Открыто</span>
+      <span class="status" id="status" role="status" title="Часы работы">
+        <i class="status__dot" aria-hidden="true"></i><span id="status-txt">Открыто</span>
       </span>
       <button class="icon-btn" type="button" data-account title="Личный кабинет" aria-label="Личный кабинет">
-        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><circle cx="12" cy="8" r="3.6"/><path d="M4.5 20c1.6-3.6 4.2-5.2 7.5-5.2S18 16.4 19.5 20"/></svg>
-        <i class="icon-btn__badge" id="acc-dot">1</i>
+        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="8" r="3.6"/><path d="M4.5 20c1.6-3.6 4.2-5.2 7.5-5.2S18 16.4 19.5 20"/></svg>
       </button>
-      <button class="icon-btn" id="cart-btn" title="Предзаказ" aria-label="Корзина предзаказа">
-        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><path d="M4 6h2l1.6 9.2a2 2 0 0 0 2 1.6h7.2a2 2 0 0 0 2-1.5L20.5 8H6.3"/><circle cx="10" cy="20" r="1.4"/><circle cx="17.5" cy="20" r="1.4"/></svg>
-        <i class="icon-btn__badge" id="cart-badge">0</i>
+      <button class="icon-btn" id="cart-btn" type="button" title="Предзаказ" aria-label="Корзина предзаказа">
+        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" aria-hidden="true"><path d="M4 6h2l1.6 9.2a2 2 0 0 0 2 1.6h7.2a2 2 0 0 0 2-1.5L20.5 8H6.3"/><circle cx="10" cy="20" r="1.4"/><circle cx="17.5" cy="20" r="1.4"/></svg>
+        <i class="icon-btn__badge" id="cart-badge" aria-hidden="true">0</i>
+        <span class="sr-only" id="cart-badge-text"></span>
       </button>
-      <button class="icon-btn burger" id="burger" type="button" aria-label="Меню" aria-expanded="false" aria-controls="nav"><span>☰</span></button>
+      <button class="icon-btn burger" id="burger" type="button" aria-label="Меню" aria-expanded="false" aria-controls="nav"><span aria-hidden="true">☰</span></button>
     </div>
   </div>
 </header>
+
+<!-- Ссылка «к содержимому»: с клавиатуры первым же Tab можно перескочить
+     десять пунктов шапки и попасть сразу в разделы -->
+<a class="skip" href="#main">Перейти к содержимому</a>
 
 <div class="ticker" aria-hidden="true">
   <div class="wrap">
@@ -179,7 +183,7 @@
                сохранённый ранее текст (каталог из-за него выглядел пустым).
                Скрипт снимает атрибут при первом же жесте человека. -->
           <input class="input" id="search" type="search" name="mr-menu-query" placeholder="Поиск: капучино, коктейль, чизкейк…" style="min-width:240px" aria-label="Поиск по меню" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" readonly data-lpignore="true" data-1p-ignore data-form-type="other">
-          <button class="btn btn--soft" id="search-clear" type="button" title="Очистить поиск" hidden>✕ Очистить</button>
+          <button class="btn btn--soft" id="search-clear" type="button" title="Очистить поиск" aria-label="Очистить поиск" hidden>✕ Очистить</button>
         </div>
       </div>
 
@@ -201,7 +205,7 @@
           <h2 class="h2">Приходите — и забирайте без очереди</h2>
           <p class="lead">Так будет выглядеть предзаказ: соберите заказ, выберите кофейню и время, оставьте телефон, посмотрите расчёт. <b>Это демонстрация механики</b> — заказ остаётся в вашем браузере, в кофейню не уходит и готовить его никто не начнёт. Заказать по-настоящему можно звонком: +375 29 642-86-13.</p>
         </div>
-        <button class="btn btn--primary" id="open-cart-2">Открыть предзаказ <span id="cart-btn-count"></span></button>
+        <button class="btn btn--primary" id="open-cart-2" type="button">Открыть предзаказ <span id="cart-btn-count"></span></button>
       </div>
 
       <div class="panel reveal">
@@ -387,7 +391,7 @@
 <!-- ─── карточка входа и регистрации ────────────────────────────────────── -->
 <div class="modal modal--account" id="account-modal" role="dialog" aria-modal="true" aria-label="Вход и регистрация">
   <div class="modal__c modal__c--account">
-    <button class="icon-btn modal__x" id="account-close" aria-label="Закрыть">✕</button>
+    <button class="icon-btn modal__x" id="account-close" aria-label="Закрыть окно входа" type="button">✕</button>
     <div class="kicker" style="margin-bottom:1rem">Личный кабинет</div>
     <div id="acc-root"></div>
   </div>
@@ -415,7 +419,7 @@
 <!-- ─── модальное окно оформления ───────────────────────────────────────── -->
 <div class="modal" id="checkout-modal" role="dialog" aria-modal="true">
   <div class="modal__c" style="position:relative">
-    <button class="icon-btn modal__x" id="checkout-close" aria-label="Закрыть">✕</button>
+    <button class="icon-btn modal__x" id="checkout-close" aria-label="Закрыть оформление" type="button">✕</button>
     <div id="checkout-body"></div>
   </div>
 </div>

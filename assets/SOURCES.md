@@ -28,7 +28,7 @@
 | cocoa.jpg | [Hot chocolate.jpg](https://commons.wikimedia.org/wiki/File%3AHot%20chocolate.jpg) | не указан | см. страницу файла |
 | croissant.jpg | [2018 01 Croissant IMG 0685.JPG](https://commons.wikimedia.org/wiki/File%3A2018%2001%20Croissant%20IMG%200685.JPG) | не указан | см. страницу файла |
 | doppio.jpg | [Close-up of espresso machine with two brown coffee cups.jpg](https://commons.wikimedia.org/wiki/File%3AClose-up%20of%20espresso%20machine%20with%20two%20brown%20coffee%20cups.jpg) | не указан | см. страницу файла |
-| eclair.jpg | [JF100425 DSB Chocolate Eclairs & Cream Puffs.jpg](https://commons.wikimedia.org/wiki/File%3AJF100425%20DSB%20Chocolate%20Eclairs%20%26%20Cream%20Puffs.jpg) | не указан | см. страницу файла |
+| eclair.jpg | [Un éclair vanille en février 2022.JPG](https://commons.wikimedia.org/wiki/File%3AUn%20%C3%A9clair%20vanille%20en%20f%C3%A9vrier%202022.JPG) | Benoît Prieur | CC0 |
 | espresso.jpg | [Espresso cup.jpg](https://commons.wikimedia.org/wiki/File%3AEspresso%20cup.jpg) | не указан | см. страницу файла |
 | flatwhite.jpg | [Flat white coffee The Cock Inn Henham Essex England 01.jpg](https://commons.wikimedia.org/wiki/File%3AFlat%20white%20coffee%20The%20Cock%20Inn%20Henham%20Essex%20England%2001.jpg) | не указан | см. страницу файла |
 | frappe.jpg | [Café frappé in glass.jpg](https://commons.wikimedia.org/wiki/File%3ACaf%C3%A9%20frapp%C3%A9%20in%20glass.jpg) | не указан | см. страницу файла |
@@ -87,16 +87,16 @@ cheesecake/eclair — десерты, icecream — мороженое шарик
 | frappe.jpg | [Frappe (4547117210).jpg](https://commons.wikimedia.org/wiki/File%3AFrappe%20(4547117210).jpg) | Klearchos Kapoutsis from Santorini, Greece | CC BY 2.0 |
 | shawarma.jpg | [Döner Kebab Wrap - What The Pitta.jpg](https://commons.wikimedia.org/wiki/File%3AD%C3%B6ner%20Kebab%20Wrap%20-%20What%20The%20Pitta.jpg) | Andy Li | CC0 |
 
-## Замена двух фото: «Лавандовый раф» и «Мороженое»
+## Замена трёх фото: «Лавандовый раф», «Мороженое» и «Эклер»
 
-Оба кадра заменены на более «журнальные»: 4:3, 1200×900, главный объект по центру и
-занимает около 68–75 % высоты кадра (проверялось по готовому кадру).
+Кадры заменены на более «журнальные»: 4:3, 1200×900, главный объект по центру и
+занимает около 60–75 % высоты кадра (проверялось по готовому кадру).
 
 | Файл | Файл-источник | Автор | Лицензия |
 |---|---|---|---|
 | lavraf.jpg | [George and Onnie's ube latte.jpg](https://commons.wikimedia.org/wiki/File%3AGeorge%20and%20Onnie's%20ube%20latte.jpg) | Josh Lim (Sky Harbor) | CC BY-SA 4.0 |
 | icecream.jpg | [Ice cream with whipped cream, chocolate syrup, and a wafer.jpg](https://commons.wikimedia.org/wiki/File%3AIce%20cream%20with%20whipped%20cream%2C%20chocolate%20syrup%2C%20and%20a%20wafer.jpg) | Nicolas Ettlin | CC BY-SA 4.0 |
-
+| eclair.jpg | [Un éclair vanille en février 2022.JPG](https://commons.wikimedia.org/wiki/File%3AUn%20%C3%A9clair%20vanille%20en%20f%C3%A9vrier%202022.JPG) | Benoît Prieur | CC0 |
 
 Почему именно эти снимки: свободного фото собственно лавандового рафа на Викискладе нет —
 поиск по «lavender latte», «lavender coffee», «lavender syrup», «lavender drink» даёт
@@ -104,8 +104,11 @@ cheesecake/eclair — десерты, icecream — мороженое шарик
 напиток: убе-латте (фиолетовый батат) в керамической чашке — сиренево-молочная кайма и
 белый латте-арт читаются как лавандовый латте. Для icecream взято мороженое в стеклянной
 креманке: шарики, взбитые сливки, шоколадный сироп и вафля — то есть сама позиция
-«шарики с сиропом», а не витрина или упаковка.
-Прежние кадры: «A cup of coffee milk.jpg» и «Ice Cream Scoop.jpg».
+«шарики с сиропом», а не витрина или упаковка. Для eclair — классический вытянутый эклер
+с кракленом, кремом и глазурью; прежний кадр был общим планом ярмарки с вывеской
+«Chocolate Eclair», самого десерта в нём почти не было видно.
+Прежние кадры: «A cup of coffee milk.jpg», «Ice Cream Scoop.jpg» и
+«JF100425 DSB Chocolate Eclairs & Cream Puffs.jpg».
 
 ## Плитки раздела Instagram
 

@@ -615,9 +615,17 @@
       ['coffee', 'cold', 'dessert'].forEach(function (id) {
         queue.push({
           title: 'Ширина ' + w + ': нажата категория ' + id,
+          /* после перерисовки карточки снова отложенные, а в невидимом окне
+             браузер такие снимки не запрашивает: просим их явно и ждём */
+          wait: 1600,
           action: function () {
             var chip = one('#rail .rail__i[data-cat="' + id + '"]');
             if (chip) fire(chip.children.length ? chip.children[0] : chip);
+            all('#menu-grid .item img').forEach(function (img) {
+              try { img.loading = 'eager'; } catch (e) {}
+              var src = img.getAttribute('src');
+              if (src) { img.removeAttribute('src'); img.setAttribute('src', src); }
+            });
           }
         });
       });
@@ -961,16 +969,29 @@
     };
 
     /* Снимок в акции отложенный: замер идёт без прокрутки, и браузер его не
-       запрашивает. Прокручиваем блок в зону видимости, ждём кадр — только
-       после этого измеряем, начиная с самой широкой версии. */
+       запрашивает. Прокручиваем блок в зону видимости и ждём именно события
+       загрузки (на медленной машине 900 мс не хватало), только потом измеряем. */
     var box = one('#promo-box');
     var back = window.scrollY;
     if (box) window.scrollTo(0, Math.max(0, rect(box).top - 120));
     setTimeout(function () {
-      [1440, 1024, 390].forEach(measure);
-      window.scrollTo(0, back);
-      send(83, out);
-    }, 900);
+      var img = one('#promo-box .promo__photo img');
+      var finish = function () {
+        [1440, 1024, 390].forEach(measure);
+        window.scrollTo(0, back);
+        send(83, out);
+      };
+      if (img && !img.complete) {
+        img.loading = 'eager';
+        var done = false;
+        var once = function () { if (done) return; done = true; setTimeout(finish, 150); };
+        img.addEventListener('load', once, { once: true });
+        img.addEventListener('error', once, { once: true });
+        setTimeout(once, 3000);
+      } else {
+        finish();
+      }
+    }, 350);
   };
 
   /* --- 2. прокрутка: логотип и переходы по меню -------------------------- */

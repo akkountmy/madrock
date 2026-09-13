@@ -70,7 +70,10 @@
       h = (h * 1103515245 + 12345) % 2147483648;
       cells += '<i class="' + (h % 100 < 46 ? 'on' : '') + '"></i>';
     }
-    return '<div class="qr" title="Покажите код на баре — печати и бонусы начислят без напоминаний">' + cells + '</div>';
+    /* Картинку из пустых ячеек скринридеру читать нечего: сама графика скрыта,
+       а смысл передан словами */
+    return '<div class="qr" aria-hidden="true">' + cells + '</div>' +
+      '<span class="sr-only">Код клубной карты: покажите его на баре, печати и бонусы начислят без напоминаний</span>';
   };
 
   /* --- хранилище --------------------------------------------------------- */
@@ -418,9 +421,10 @@
   var punchHTML = function (done, demo) {
     var out = '';
     for (var i = 1; i <= 10; i++) {
-      out += '<div class="punch__c ' + (i <= done ? 'on' : '') + '" title="' + (i <= done ? 'Напиток ' + i + ' — есть' : 'Напиток ' + i) + '">' + (i <= done ? '☕' : i) + '</div>';
+      out += '<div class="punch__c ' + (i <= done ? 'on' : '') + '" aria-hidden="true">' + (i <= done ? '☕' : i) + '</div>';
     }
-    out += '<div class="punch__c gift">' + (done >= 10 ? '🎁 11-й напиток ждёт вас!' : '🎁 Каждый 10-й напиток — в подарок' + (demo ? '' : ' · осталось ' + (10 - done))) + '</div>';
+    out += '<div class="punch__c gift" aria-hidden="true">' + (done >= 10 ? '🎁 11-й напиток ждёт вас!' : '🎁 Каждый 10-й напиток — в подарок' + (demo ? '' : ' · осталось ' + (10 - done))) + '</div>';
+    out += '<span class="sr-only">Печатей в карте: ' + Math.min(10, done) + ' из 10. Каждый десятый напиток — в подарок.</span>';
     return out;
   };
 
@@ -459,12 +463,16 @@
         '<div class="promo__side">' +
           '<div>' +
             '<div class="promo__week">До конца акции</div>' +
-            '<div class="timer" id="timer">' +
+            /* Цифры таймера обновляются каждую секунду: для скринридера это шум,
+               поэтому саму сетку скрываем, а словами об остатке говорит
+               отдельная строка ниже — она обновляется раз в минуту. */
+            '<div class="timer" id="timer" aria-hidden="true">' +
               '<div class="timer__cell"><div class="timer__n" id="t-d">00</div><div class="timer__l">дней</div></div>' +
               '<div class="timer__cell"><div class="timer__n" id="t-h">00</div><div class="timer__l">часов</div></div>' +
               '<div class="timer__cell"><div class="timer__n" id="t-m">00</div><div class="timer__l">минут</div></div>' +
               '<div class="timer__cell"><div class="timer__n" id="t-s">00</div><div class="timer__l">секунд</div></div>' +
             '</div>' +
+            '<p class="sr-only" id="t-left">До конца акции</p>' +
             '<p class="xs muted" style="margin-top:.7rem">В понедельник 00:00 включится новое предложение из ' + PROMOS.length + ' в ротации.</p>' +
           '</div>' +
           '<ul class="promo__steps">' + p.conditions.map(function (c, i) {
@@ -497,6 +505,16 @@
     var dd = $('#t-d'), hh = $('#t-h'), mm = $('#t-m'), ss = $('#t-s');
     if (!dd) return;
     dd.textContent = pad(d); hh.textContent = pad(h); mm.textContent = pad(m); ss.textContent = pad(s);
+    /* словами — раз в минуту: секунды озвучивать бессмысленно */
+    var word = $('#t-left');
+    if (word && word.dataset.min !== String(m)) {
+      word.dataset.min = String(m);
+      var parts = [];
+      if (d) parts.push(d + ' ' + (d === 1 ? 'день' : (d < 5 ? 'дня' : 'дней')));
+      if (h) parts.push(h + ' ' + (h === 1 ? 'час' : (h < 5 ? 'часа' : 'часов')));
+      parts.push(m + ' ' + (m % 10 === 1 && m !== 11 ? 'минута' : 'минут'));
+      word.textContent = 'До конца акции ' + parts.join(' ') + '. В понедельник 00:00 включится новое предложение.';
+    }
   };
 
   /* --- витрины ----------------------------------------------------------- */
@@ -820,6 +838,10 @@
     var badge = $('#cart-badge');
     badge.textContent = n;
     badge.classList.toggle('show', n > 0);
+    /* цифра на значке скрыта от скринридера, поэтому количество объявляем
+       отдельным текстом: иначе «0» в кружке ничего не сообщает */
+    var badgeText = $('#cart-badge-text');
+    if (badgeText) badgeText.textContent = n ? 'позиций в предзаказе: ' + n : 'предзаказ пуст';
     $('#cart-btn-count').textContent = n ? '· ' + n : '';
     $('#cart-sub').textContent = cart.length ? n + ' поз. · ' + money(orderTotal()) : 'Соберите заказ — заберёте без очереди';
 
@@ -955,8 +977,8 @@
       s = stepsHTML() +
         '<h3 class="h3" style="margin-bottom:1rem">Как вас зовут</h3>' +
         '<div class="grid-2" style="gap:1rem;margin-bottom:1rem">' +
-        '<div class="field"><label for="co-name">Имя</label><input class="input" id="co-name" value="' + esc(checkout.name) + '" placeholder="Как позвать на выдаче"></div>' +
-        '<div class="field"><label for="co-phone">Телефон</label><input class="input" id="co-phone" value="' + esc(checkout.phone) + '" placeholder="+375 (29) 000-00-00" inputmode="tel"></div>' +
+        '<div class="field"><label for="co-name">Имя</label><input class="input" id="co-name" value="' + esc(checkout.name) + '" placeholder="Как позвать на выдаче" autocomplete="name"></div>' +
+        '<div class="field"><label for="co-phone">Телефон</label><input class="input" id="co-phone" type="tel" value="' + esc(checkout.phone) + '" placeholder="+375 (29) 000-00-00" inputmode="tel" autocomplete="tel"></div>' +
         '</div>' +
         '<div class="field" style="margin-bottom:1rem"><label for="co-comment">Комментарий</label><input class="input" id="co-comment" value="' + esc(checkout.comment) + '" placeholder="Например: позвонить, когда будет готово"></div>' +
         '<div class="panel panel--flat"><div class="between"><b>Номер телефона — это ваша клубная карта</b></div>' +

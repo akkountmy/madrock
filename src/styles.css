@@ -70,6 +70,8 @@
 }
 
 [data-theme="light"] {
+  /* Светлая тема не подключается: сайт задуман одним чёрным фоном.
+     Токены оставлены на случай, если тему когда-нибудь включат осознанно. */
   --ink:       #f7f2ea;
   --ink-2:     #fffaf3;
   --surface:   #ffffff;
@@ -83,6 +85,21 @@
   --muted-2:   #8b7d70;
   --shadow-2:  0 18px 45px -20px rgba(80, 60, 40, .35);
   --shadow-3:  0 40px 90px -34px rgba(80, 60, 40, .45);
+}
+
+/* --- служебное для доступности -------------------------------------------
+   Ссылка «Перейти к содержимому» нужна, чтобы с клавиатуры не проходить
+   десять пунктов шапки; показывается только при фокусе. Класс .sr-only
+   прячет текст от глаз, но оставляет его скринридеру. */
+.skip {
+  position: absolute; left: -9999px; top: 0; z-index: 210;
+  padding: .7rem 1.1rem; border-radius: 0 0 var(--r-sm) 0;
+  background: var(--amber); color: #fff; font-weight: 700; font-size: .9rem;
+}
+.skip:focus { left: 0; outline: 2px solid #fff; outline-offset: 2px; }
+.sr-only {
+  position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0;
+  overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
 }
 
 /* --- база ---------------------------------------------------------------- */
@@ -740,8 +757,9 @@ a.insta__t:focus-visible .insta__cap { opacity: 1; }
 .rev__name { font-weight: 700; font-size: .9rem; }
 .rev__src { font-size: var(--fs-xs); color: var(--muted-2); }
 
-/* --- контакты ------------------------------------------------------------ */
-.contacts { display: grid; grid-template-columns: 1fr 1fr; gap: var(--gap); }
+/* --- контакты ------------------------------------------------------------
+   Сетку карточек кофеен задаёт блок ниже (пять в ряд, на телефоне 2+2+1):
+   здесь остаются только оформление самой карточки и её строк. */
 .contact-card { border: 1px solid var(--line); border-radius: var(--r-lg); background: var(--surface); overflow: hidden; display: flex; flex-direction: column; }
 .contact-card__map { height: 190px; position: relative; }
 .contact-card__b { padding: 1.3rem; display: grid; gap: .75rem; }
@@ -749,7 +767,7 @@ a.insta__t:focus-visible .insta__cap { opacity: 1; }
 .cinfo { display: grid; gap: .55rem; font-size: .92rem; }
 .cinfo__r { display: flex; gap: .6rem; color: var(--muted); }
 .cinfo__r b { color: var(--cream); font-weight: 600; }
-.map-note { position: absolute; inset: 0; display: grid; place-items: center; background: linear-gradient(135deg, #141414, #1c1c1c); color: var(--muted); font-size: var(--fs-sm); text-align: center; padding: 1rem; }
+
 
 /* --- футер --------------------------------------------------------------- */
 .ftr { border-top: 1px solid var(--line); background: var(--ink-2); padding: clamp(2.4rem, 6vw, 4rem) 0 1.6rem; margin-top: var(--sec-y); position: relative; z-index: 1; }
@@ -800,13 +818,20 @@ a.insta__t:focus-visible .insta__cap { opacity: 1; }
 .reveal.in { opacity: 1; transform: none; }
 @media (prefers-reduced-motion: reduce) { .reveal { opacity: 1; transform: none; transition: none; } }
 
+/* На тач-устройствах наведения нет: подписи плиток показываем сразу, а
+   «залипающие» после касания увеличения и подъёмы карточек отключаем */
+@media (hover: none) {
+  .insta__cap, .insta__t::after { opacity: 1; }
+  .insta__t:hover img, .ph--zoom:hover img { transform: none; }
+  .item:hover, .tile:hover, .point-card:hover, .social:hover { transform: none; }
+}
+
 /* --- адаптив ------------------------------------------------------------- */
 @media (max-width: 1000px) {
   .promo { grid-template-columns: 1fr; }
   .promo__side { border-left: none; border-top: 1px solid var(--line); }
   .acc-hero, .grid-2, .grid-2--wide { grid-template-columns: 1fr; }
   .ftr__grid { grid-template-columns: 1fr 1fr; }
-  .contacts { grid-template-columns: 1fr; }
 }
 
 @media (max-width: 780px) {
@@ -932,6 +957,17 @@ a.insta__t:focus-visible .insta__cap { opacity: 1; }
   }
 }
 
+/* Планшетная ширина (561–780): здесь не нужно мельчить текст так, как на
+   телефоне — места достаточно, а 9 px в подписях читались плохо. Блок стоит
+   после «телефонного», иначе тот перебил бы эти значения. */
+@media (min-width: 561px) and (max-width: 780px) {
+  .revs .rev__txt { font-size: .72rem; -webkit-line-clamp: 9; }
+  .revs .rev__name { font-size: .72rem; }
+  .revs .rev__src { font-size: .66rem; }
+  .grid-items .item__name { font-size: .82rem; }
+  .grid-items .add { font-size: .66rem; }
+}
+
 @media (max-width: 520px) {
   /* каталог остаётся в три плитки: так и в меню, и в хитах видно по три
      продукта в ряд даже на узком телефоне */
@@ -1053,7 +1089,7 @@ html { overflow-x: clip; }
 /* на средних экранах ряд делится: три карточки, две, одна */
 @media (max-width: 1080px) { .points-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
 @media (max-width: 780px) { .points-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
-@media (max-width: 620px) { .points-grid { grid-template-columns: 1fr; } }
+@media (max-width: 430px) { .points-grid { grid-template-columns: 1fr; } }
 
 /* --- служебные кнопки в бренде логотипа -----------------------------------
    Плотная форма, капслок с разрядкой, чёткий край: кнопка читается как рабочая
@@ -1098,7 +1134,7 @@ html { overflow-x: clip; }
    Фото в полосе фиксированной высоты (раньше снимок сам задавал высоту и
    растягивал карточку), значки в своей колонке, кнопка прижата к низу.
    Пять кофеен — пять карточек в одну строку без переноса. */
-.contacts { grid-template-columns: repeat(5, minmax(0, 1fr)); align-items: stretch; grid-auto-rows: 1fr; gap: .8rem; }
+.contacts { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); align-items: stretch; grid-auto-rows: 1fr; gap: .8rem; }
 .contact-card { height: 100%; }
 .contact-card__map { height: 180px; }
 .contact-card__map .ph { height: 100%; }
