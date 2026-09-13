@@ -781,12 +781,18 @@ section[id] { scroll-margin-top: calc(var(--hdr-h) + 14px); }
 a.insta__t { display: block; }
 a.insta__t:focus-visible { outline: 2px solid var(--amber); outline-offset: 3px; }
 
+/* Общая оценка кофейни в шапке блока отзывов */
+.rate { display: inline-flex; align-items: baseline; flex-wrap: wrap; gap: .4rem .6rem; }
+.rate__stars { color: var(--gold); letter-spacing: .12em; font-size: 1rem; }
+.rate__num { font-family: var(--font-display); font-size: 1.3rem; font-weight: 800; color: var(--cream); }
+.rate__src { font-size: var(--fs-xs); color: var(--muted-2); }
+
 .revs { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: var(--gap); }
 .rev { border: 1px solid var(--line); border-radius: var(--r-md); padding: 1.4rem; background: var(--surface); display: flex; flex-direction: column; gap: .8rem; }
 .rev__stars { color: var(--gold); letter-spacing: .15em; font-size: .95rem; }
 .rev__txt { color: var(--cream-2); font-size: .95rem; flex: 1; }
 .rev__who { display: flex; align-items: center; gap: .7rem; padding-top: .8rem; border-top: 1px solid var(--line); }
-.rev__av { width: 36px; height: 36px; border-radius: 50%; display: grid; place-items: center; font-weight: 800; background: var(--surface-3); color: var(--gold); font-size: .85rem; }
+.rev__av { flex: none; width: 36px; height: 36px; border-radius: 50%; display: grid; place-items: center; font-weight: 800; background: var(--surface-3); color: var(--gold); font-size: .85rem; align-self: center; }
 .rev__name { font-weight: 700; font-size: .9rem; }
 .rev__src { font-size: var(--fs-xs); color: var(--muted-2); }
 
@@ -1751,9 +1757,7 @@ body.acc-on > .totop, body.acc-on > .drawer { display: none; }
           <span class="kicker">Гости</span>
           <h2 class="h2">Что о нас говорят</h2>
         </div>
-        <div class="row">
-          <span class="badge">Отзывы демонстрационные — пример оформления, не цитаты гостей</span>
-        </div>
+        <div class="row" id="revs-head"></div>
       </div>
       <div class="revs reveal" id="revs"></div>
 
@@ -1843,7 +1847,7 @@ body.acc-on > .totop, body.acc-on > .drawer { display: none; }
     </div>
     <div class="ftr__bottom">
       <span>© <span id="year"></span> MADROCK COFFEE · Гомель, Беларусь · реквизиты — по запросу в кофейне</span>
-      <span>Демонстрационный сайт: предзаказ никуда не отправляется, оплата не проводится, бонусы и купоны условны, данные остаются только в вашем браузере. Меню, цены, часы работы и фото требуют подтверждения у кофейни.</span>
+      <span>Демонстрационный сайт: предзаказ никуда не отправляется, оплата не проводится, бонусы и купоны условны, данные остаются только в вашем браузере. Меню, цены, часы работы, отзывы и фото требуют подтверждения у кофейни.</span>
     </div>
   </div>
 </footer>
@@ -2220,6 +2224,19 @@ const TIERS = [
 const SEED_COUPONS = [
   { code: 'MADROCK10', title: 'Купон-пример: −10% на первый предзаказ', value: '−10%', desc: 'Кнопка отмечает купон использованным, скидка в демо не считается', used: false },
 ];
+
+/* Общая оценка кофейни для шапки блока отзывов. Цифры взяты из открытых
+   источников (research/01-madrock-facts.md, август–сентябрь 2026): Яндекс
+   Карты — 4,2 по 97 оценкам и Google — 4,2 по 426 у флагманской кофейни
+   на Советской, 42. RestaurantGuru даёт разброс 4,2–4,8, поэтому в шапке
+   стоит одно число, подтверждённое двумя площадками, и указан объём оценок. */
+const RATING = {
+  value: '4,2',
+  stars: 4,
+  platform: 'Яндекс Карты и Google',
+  votes: 523,
+  date: 'сентябрь 2026',
+};
 
 /* --- отзывы (демонстрационные, по мотивам реальных оценок) ---------------- */
 const REVIEWS = [
@@ -2652,6 +2669,23 @@ const FACTS = [
           esc(p.features.join(' · ')) + '">Выбрать для предзаказа</button>',
       });
     }).join('');
+
+    /* Оценка кофейни — в шапке блока отзывов: звёзды, цифра и площадки, по
+       которым она сложилась. Цифры из открытых источников, объём оценок
+       указан рядом — читателю видно, откуда взято число. */
+    var stars = '';
+    for (var s5 = 0; s5 < 5; s5++) stars += s5 < RATING.stars ? '★' : '☆';
+    var revHead = $('#revs-head');
+    if (revHead) {
+      revHead.innerHTML =
+        '<div class="rate">' +
+          '<span class="rate__stars" aria-hidden="true">' + stars + '</span>' +
+          '<b class="rate__num">' + esc(RATING.value) + '</b>' +
+          '<span class="rate__src">' + esc(RATING.platform) + ' · ' + RATING.votes + ' оценки · ' + esc(RATING.date) + '</span>' +
+        '</div>' +
+        '<span class="sr-only">Средняя оценка ' + esc(RATING.value) + ' из 5 по данным ' + esc(RATING.platform) +
+          ', ' + RATING.votes + ' оценки, ' + esc(RATING.date) + '</span>';
+    }
 
     $('#revs').innerHTML = REVIEWS.map(function (r) {
       var stars = ''; for (var i = 0; i < 5; i++) stars += i < r.r ? '★' : '☆';

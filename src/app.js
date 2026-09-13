@@ -401,6 +401,23 @@
       });
     }).join('');
 
+    /* Оценка кофейни — в шапке блока отзывов: звёзды, цифра и площадки, по
+       которым она сложилась. Цифры из открытых источников, объём оценок
+       указан рядом — читателю видно, откуда взято число. */
+    var stars = '';
+    for (var s5 = 0; s5 < 5; s5++) stars += s5 < RATING.stars ? '★' : '☆';
+    var revHead = $('#revs-head');
+    if (revHead) {
+      revHead.innerHTML =
+        '<div class="rate">' +
+          '<span class="rate__stars" aria-hidden="true">' + stars + '</span>' +
+          '<b class="rate__num">' + esc(RATING.value) + '</b>' +
+          '<span class="rate__src">' + esc(RATING.platform) + ' · ' + RATING.votes + ' оценки · ' + esc(RATING.date) + '</span>' +
+        '</div>' +
+        '<span class="sr-only">Средняя оценка ' + esc(RATING.value) + ' из 5 по данным ' + esc(RATING.platform) +
+          ', ' + RATING.votes + ' оценки, ' + esc(RATING.date) + '</span>';
+    }
+
     $('#revs').innerHTML = REVIEWS.map(function (r) {
       var stars = ''; for (var i = 0; i < 5; i++) stars += i < r.r ? '★' : '☆';
       /* На телефоне карточка узкая, и текст обрезается по строкам: полный

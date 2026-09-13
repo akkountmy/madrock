@@ -372,6 +372,30 @@
       add('Ширина ' + w + ': подписей на фотографиях нет, название в alt',
         'с текстом поверх фото: ' + caps + ' · с подписью в alt: ' + labelled + ' из ' + tiles.length,
         caps === 0 && labelled === tiles.length);
+
+      /* Оценка кофейни в шапке блока отзывов: звёзды, цифра и источник */
+      var rate = one('#revs-head .rate');
+      var rateWrap = rect(one('#reviews .wrap'));
+      add('Ширина ' + w + ': оценка кофейни в шапке отзывов',
+        rate
+          ? '«' + String(text('#revs-head .rate__stars')).trim() + '» ' + String(text('#revs-head .rate__num')).trim() +
+            ' · ' + String(text('#revs-head .rate__src')).trim() + ' · край ' + Math.round(rect(rate).right) + ' при ' + Math.round(rateWrap.right)
+          : 'оценки нет',
+        !!rate && rect(rate).right <= rateWrap.right + 1 && rect(rate).width > 80);
+
+      /* Аватар автора должен стоять по центру своей подписи (имя + площадка) */
+      var rev = one('#revs .rev');
+      if (rev) {
+        var av = rev.querySelector('.rev__av');
+        var avText = av ? av.nextElementSibling : null;
+        if (av && avText) {
+          var ar = rect(av), tr2 = rect(avText);
+          var diff = Math.round(((ar.top + ar.bottom) / 2) - ((tr2.top + tr2.bottom) / 2));
+          add('Ширина ' + w + ': аватар автора по центру подписи',
+            'аватар ' + Math.round(ar.height) + ' px · подпись ' + Math.round(tr2.height) + ' px · смещение центра ' + diff + ' px',
+            Math.abs(diff) <= 2);
+        }
+      }
       add('Ширина ' + w + ': фотографии плиток целые', broken ? broken + ' сломано' : 'все на месте', broken === 0);
       var wrap = rect(one('#reviews .wrap'));
       add('Ширина ' + w + ': плитки внутри полей сайта',
