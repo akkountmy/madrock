@@ -50,6 +50,8 @@ jobs:
           # заметки, скрипты) не могут просочиться на хостинг случайно.
           find assets -maxdepth 1 -type f \( -name '*.webp' -o -name '*.jpg' \) -exec cp {} _site/assets/ \;
           cp assets/SOURCES.md _site/assets/
+          # полный текст лицензии GFDL 1.2 обязателен для двух кадров
+          mkdir -p _site/assets/licenses && cp assets/licenses/*.txt _site/assets/licenses/
           cp assets/brand/logo.png _site/assets/brand/
           cp assets/brand/og-cover.jpg _site/assets/brand/
           cp assets/fonts/*.woff2 _site/assets/fonts/
