@@ -239,7 +239,7 @@ const MENU = [
   { id: 'croissant', cat: 'dessert', name: 'Круассан', en: 'Croissant', vol: '90 г', price: 3.20,
     desc: 'Слоёный и хрустящий, привозят каждое утро.', taste: ['слоёный', 'масло'], img: PHOTO.croissant, tags: ['veg'] },
   { id: 'icecream', cat: 'dessert', name: 'Мороженое', en: 'Ice Cream', vol: '120 г', price: 3.00,
-    desc: 'Три шарика на выбор, с сиропом и орехами.', taste: ['холодно', 'сладко'], img: PHOTO.icecream, tags: ['veg'] },
+    desc: 'Три шарика на выбор, со взбитыми сливками, сиропом и вафлей.', taste: ['холодно', 'сладко'], img: PHOTO.icecream, tags: ['veg'] },
 ];
 
 const HITS = ['cappuccino', 'bigblack', 'milkshake', 'rockcaramel', 'raf', 'cheesecake'];
