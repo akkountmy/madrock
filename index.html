@@ -1773,7 +1773,7 @@ body.acc-on > .totop, body.acc-on > .drawer { display: none; }
         <a class="tile" href="tel:+375296428613">
           <div class="tile__ico">📞</div>
           <div class="tile__t">Заказать звонком</div>
-          <div class="tile__d">+375 29 642-86-13 — флагман на Советской, 42. Второй номер: 8 044 558-71-80.</div>
+          <div class="tile__d">+375 29 642-86-13 — флагман на Советской, 42.</div>
         </a>
         <a class="tile" href="viber://chat?number=%2B375296428613">
           <div class="tile__ico">💬</div>
@@ -1826,7 +1826,6 @@ body.acc-on > .totop, body.acc-on > .drawer { display: none; }
         <div class="sec-head__text">
           <span class="kicker">Контакты</span>
           <h2 class="h2">Заходите — мы рядом</h2>
-          <p class="lead" id="contacts-lead"></p>
         </div>
         <div class="row">
           <a class="btn btn--ghost" id="tel-link" href="tel:+375296428613">Позвонить</a>
@@ -2041,7 +2040,8 @@ const SHOP = {
   city: 'Гомель',
   tagline: 'Итальянский кофе, густые коктейли и десерты',
   phone: '+375 29 642-86-13',
-  phone2: '8 044 558-71-80',
+  /* Второй номер телефона убран: владелец просил его не показывать. Значение
+     осталось в истории git, если понадобится вернуть. */
   instagram: 'madrock_coffee',
   vk: 'madrockcoffe_gomel',
   legal: 'ООО «РИТЕЙЛ» · УНП уточняется',
@@ -2627,9 +2627,10 @@ const FACTS = [
 
     $('#year').textContent = new Date().getFullYear();
     $('#tel-link').href = 'tel:' + SHOP.phone.replace(/[^+\d]/g, '');
-    $('#contacts-lead').textContent = SHOP.points.length + ' кофеен в Гомеле, работаем каждый день, самая ранняя открывается в 7:30. ' +
-      'Телефон ' + SHOP.phone + ' (второй: ' + SHOP.phone2 + '), Instagram @' + SHOP.instagram + ', VK. ' +
-      'Предзаказ — самый быстрый способ: стакан будет готов к вашему времени.';
+    /* Подпись под заголовком «Контакты» убрана по просьбе владельца: она
+       повторяла карточки кофеен ниже (адреса, часы, телефоны) и добавляла
+       второй номер телефона и рассказ про предзаказ — предзаказ и так
+       открывается кнопкой рядом. */
 
     $('#ftr-cats').innerHTML = CATEGORIES.map(function (c) {
       return '<a href="#menu" data-cat="' + c.id + '">' + esc(c.name) + '</a>';

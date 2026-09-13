@@ -305,9 +305,10 @@
 
     $('#year').textContent = new Date().getFullYear();
     $('#tel-link').href = 'tel:' + SHOP.phone.replace(/[^+\d]/g, '');
-    $('#contacts-lead').textContent = SHOP.points.length + ' кофеен в Гомеле, работаем каждый день, самая ранняя открывается в 7:30. ' +
-      'Телефон ' + SHOP.phone + ' (второй: ' + SHOP.phone2 + '), Instagram @' + SHOP.instagram + ', VK. ' +
-      'Предзаказ — самый быстрый способ: стакан будет готов к вашему времени.';
+    /* Подпись под заголовком «Контакты» убрана по просьбе владельца: она
+       повторяла карточки кофеен ниже (адреса, часы, телефоны) и добавляла
+       второй номер телефона и рассказ про предзаказ — предзаказ и так
+       открывается кнопкой рядом. */
 
     $('#ftr-cats').innerHTML = CATEGORIES.map(function (c) {
       return '<a href="#menu" data-cat="' + c.id + '">' + esc(c.name) + '</a>';
