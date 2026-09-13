@@ -1707,9 +1707,70 @@
     if (location.hash === '#account') setTimeout(apply, 60);
   };
 
+  /* --- бегущая строка ------------------------------------------------------
+     Строку двигаем сами, кадр за кадром: CSS-анимация внутри маскированного
+     блока замирала в Safari, а медиазапрос «меньше движения» выключал её у
+     тех, кто просто не менял настройку телефона. Здесь движение включено
+     всегда, а остановить его можно кнопкой в правом краю полосы (WCAG 2.2.2). */
+  var initTicker = function () {
+    var ticker = $('#ticker'), row = $('#ticker-row'), btn = $('#ticker-pause');
+    if (!ticker || !row || !row.firstChild) return;
+
+    var half = 0, shift = 0, last = 0, raf = 0, paused = false;
+    var speed = function () { return window.innerWidth <= 780 ? 34 : 52; };   // px в секунду
+
+    var frame = function (t) {
+      raf = 0;
+      if (!last) last = t;
+      /* потолок шага: после сворачивания вкладки не должно быть рывка */
+      var dt = Math.min(0.05, (t - last) / 1000);
+      last = t;
+      if (!paused && half > 0) {
+        shift = (shift + speed() * dt) % half;
+        row.style.transform = 'translate3d(' + (-shift).toFixed(2) + 'px,0,0)';
+      }
+      raf = requestAnimationFrame(frame);
+    };
+    var play = function () { if (!raf && half > 0) { last = 0; raf = requestAnimationFrame(frame); } };
+    var stop = function () { if (raf) { cancelAnimationFrame(raf); raf = 0; } };
+
+    /* Полоса бежит, только если надписи длиннее её полей: иначе строка просто
+       лежит по центру (класс ticker--run снимается, кнопка прячется).
+       Период считаем, заранее включив режим движения: в свёрнутом состоянии
+       надписи стоят в две строки, и по их позициям длину линии не измерить —
+       из-за этого строка раньше оставалась неподвижной. */
+    var measure = function () {
+      var fields = row.parentElement.clientWidth;
+      ticker.classList.add('ticker--run');
+      var kids = row.children;
+      var mid = kids[Math.floor(kids.length / 2)];
+      half = (kids.length > 2 && mid) ? (mid.offsetLeft - kids[0].offsetLeft) : row.scrollWidth / 2;
+      var runs = half > fields + 8;
+      if (!runs) {
+        ticker.classList.remove('ticker--run');
+        row.style.transform = 'none';
+        stop();
+      } else if (!paused) play();
+    };
+
+    btn.addEventListener('click', function () {
+      paused = !paused;
+      btn.setAttribute('aria-pressed', paused ? 'true' : 'false');
+      btn.setAttribute('aria-label', paused ? 'Запустить бегущую строку' : 'Остановить бегущую строку');
+      if (paused) stop(); else { last = 0; play(); }
+    });
+
+    window.addEventListener('resize', measure);
+    /* Шрифт грузится после первого замера и меняет ширину надписей — период
+       нужно пересчитать, иначе на стыке копий будет заметный рывок. */
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(measure).catch(function () {});
+    measure();
+  };
+
   /* --- запуск ------------------------------------------------------------ */
   var init = function () {
     renderShell();
+    initTicker();
     renderStatus();
     renderPromo();
     renderRail();

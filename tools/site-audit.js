@@ -14,9 +14,31 @@
   var FLOW_READY = 'measure';
   var USER_KEY = 'madrock.user.v2';
   var OF = 10;
+  /* Отчёт уходит запросом картинки, а весь отчёт — в адресе. Сервер отбивает
+     слишком длинные адреса ответом 431, и часть проверок пропадала молча:
+     замер выглядел зелёным, потому что половина строк просто не доезжала.
+     Поэтому режем отчёт на порции по 8 КБ; номер части — база × 100 + порция. */
+  var BEACON_BUDGET = 8000;
 
   var send = function (part, checks) {
-    new Image().src = '/madrock-verify?part=' + part + '&of=' + OF + '&d=' + encodeURIComponent(JSON.stringify({ checks: checks }));
+    var idx = 0;
+    var chunk = [];
+    var size = 0;
+    var flush = function () {
+      if (chunk.length === 0) return;
+      new Image().src = '/madrock-verify?part=' + (part * 100 + idx) + '&of=' + OF +
+        '&d=' + encodeURIComponent(JSON.stringify({ checks: chunk }));
+      idx += 1;
+      chunk = [];
+      size = 0;
+    };
+    (checks || []).forEach(function (c) {
+      var s = encodeURIComponent(JSON.stringify(c)).length + 48;
+      if (size > 0 && size + s > BEACON_BUDGET) flush();
+      chunk.push(c);
+      size += s;
+    });
+    flush();
   };
 
   /* --- общие помощники --------------------------------------------------- */
@@ -104,20 +126,16 @@
     add('Контейнер строки: класс полей', port ? String(port.className) : 'нет',
       !!port && String(port.className).indexOf('wrap') >= 0);
 
-    /* при отключённом движении строка статична и обязана уложиться в поля;
-       при включённом — она бежит, а поля её обрезают */
-    var reduce = !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+    /* Строку двигает скрипт, поэтому она бежит всегда — и на большом экране,
+       и на телефоне. Здесь проверяем геометрию: полоса режет надписи по полям,
+       строка длиннее полей и страница вбок не растягивается. Само движение
+       меряет отдельный замер (часть 93). */
     var fields = Math.round(inner.right - inner.left);
     var rowWidth = Math.round(rect(row).width);
-    if (reduce) {
-      var shown = all('#ticker-row span').filter(function (s) { return css(s).display !== 'none'; }).length;
-      add('Строка стоит по просьбе системы и уложилась в поля',
-        'overflow-x: ' + portCss.overflowX + ' · строка ' + rowWidth + ' px при полях ' + fields + ' · надписей ' + shown,
-        portCss.overflowX === 'visible' && rowWidth <= fields + 1 && shown === 9);
-    } else {
-      add('Надписи обрезаются по полям', 'overflow-x: ' + portCss.overflowX, portCss.overflowX === 'hidden');
-      add('Строка длиннее полей и потому бежит', 'строка ' + rowWidth + ' px при полях ' + fields, rowWidth > fields);
-    }
+    var spread = document.documentElement.scrollWidth - document.documentElement.clientWidth;
+    add('Надписи режет полоса по своим полям', 'overflow-x: ' + portCss.overflowX, portCss.overflowX === 'hidden');
+    add('Строка длиннее полей и потому бежит', 'строка ' + rowWidth + ' px при полях ' + fields, rowWidth > fields);
+    add('Бегущая строка не растягивает страницу вбок', 'лишних ' + spread + ' px', spread <= 1);
 
     var hero = one('.hero__box') || one('.hero .wrap');
     var hr = rect(hero);
@@ -172,8 +190,8 @@
 
         var rows = byRow(cards);
         var expectOne = w >= 1100;
-        /* На телефоне кофейни стоят по две в ряд, пятая — на всю ширину */
-        var mobile = w <= 780;
+        /* На узких экранах кофейни стоят по две в ряд, пятая — на всю ширину */
+        var mobile = w <= 860;
         var lastWide = cards.length === 5 && Math.abs(rect(cards[4]).width - rect(one('#contacts-grid')).width) <= 2;
         add('Ширина ' + w + ': ' + cards.length + ' карточек по строкам ' + rows.join('/'),
           mobile ? (lastWide ? 'пятая во всю ширину' : 'пятая уже остальных') : (expectOne ? 'ждём одну строку из 5' : 'ждём несколько строк'),
@@ -216,8 +234,8 @@
       send(part, out);
     };
 
-    shoot([1440, 1200, 1100], 10);
-    shoot([1024, 900, 780, 390], 20);
+    shoot([1440, 1200, 1100], 21);
+    shoot([1024, 900, 800, 390], 22);
   };
 
   /* --- 80. форма входа: помещается ли без внутренней прокрутки ----------- */
@@ -265,7 +283,7 @@
     });
 
     if (frame) frame.style.height = '900px';
-    send(80, out);
+    send(23, out);
   };
 
   /* --- 79. форма регистрации на телефоне: ничего не вылезает и не режется -- */
@@ -327,9 +345,12 @@
     var out = [];
     var add = function (n, v, ok) { out.push({ n: n, v: String(v).slice(0, 140), ok: !!ok }); };
 
-    [1440, 1024, 780, 390].forEach(function (w) {
+    [1440, 1024, 800, 390].forEach(function (w) {
       frameWidth(w);
-      var tiles = all('#gallery .insta__t');
+      var allTiles = all('#gallery .insta__t');
+      /* На узких экранах две последние плитки скрыты: в кадре их нет, поэтому
+         и считаем, и меряем только видимые. */
+      var tiles = allTiles.filter(function (t) { return css(t).display !== 'none'; });
       if (tiles.length === 0) { add('Ширина ' + w + ': раздел Instagram', 'плиток нет', false); return; }
       var first = rect(tiles[0]);
       /* Подписи поверх плиток убраны по просьбе владельца: проверяем наоборот —
@@ -346,8 +367,12 @@
         return !img || (img.complete && img.naturalWidth === 0);
       }).length;
 
+      /* На большом экране восемь кадров (4 + 4), на телефоне шесть (3 + 3):
+         восьмёрка в три колонки дала бы неполный последний ряд */
+      var wantTiles = w > 860 ? 8 : 6;
       add('Ширина ' + w + ': плиток в разделе Instagram',
-        tiles.length + ' шт · по строкам ' + byRow(tiles).join('/'), tiles.length === 6);
+        tiles.length + ' показано из ' + allTiles.length + ' · по строкам ' + byRow(tiles).join('/') + ' · ждём ' + wantTiles,
+        tiles.length === wantTiles);
 
       /* Плитка обязана встать в ту же колонку, что карточка меню, и быть того
          же размера, что фотография в ней — именно этого просил владелец:
@@ -362,13 +387,16 @@
         !!menuCard && !!menuShot && Math.abs(first.width - menuCard.width) <= 1 &&
           Math.abs(first.width - menuShot.width) <= 3 && Math.abs(first.height - menuShot.height) <= 3);
 
+      /* Форма кадра берётся у фотографии меню: на большом экране это 4:3, на
+         телефоне квадрат — плитка обязана повторять форму меню. */
       var sizes = tiles.map(function (t) { return Math.round(rect(t).width) + '×' + Math.round(rect(t).height); });
-      var spread = rect(tiles[0]).width === 0 ? 99 :
-        Math.max.apply(null, tiles.map(function (t) { return Math.round(rect(t).width); })) -
+      var spread = Math.max.apply(null, tiles.map(function (t) { return Math.round(rect(t).width); })) -
         Math.min.apply(null, tiles.map(function (t) { return Math.round(rect(t).width); }));
-      add('Ширина ' + w + ': плитки одинаковые, кадр ' + (w > 780 ? '4:3' : '1:1'),
-        sizes[0] + ' · разброс ширины ' + spread,
-        Math.abs(first.width / first.height - (w > 780 ? 4 / 3 : 1)) < 0.03 && spread <= 1);
+      var wantRatio = menuShot ? menuShot.width / menuShot.height : (w > 860 ? 4 / 3 : 1);
+      add('Ширина ' + w + ': плитки одного размера и формы, как в меню',
+        sizes[0] + (sizes.length > 1 ? ' … ' + sizes[sizes.length - 1] : '') + ' · разброс ширины ' + spread +
+          ' · форма ' + (first.width / first.height).toFixed(2) + ' при ' + wantRatio.toFixed(2) + ' у фото меню',
+        Math.abs(first.width / first.height - wantRatio) < 0.03 && spread <= 1);
       add('Ширина ' + w + ': подписей на фотографиях нет, название в alt',
         'с текстом поверх фото: ' + caps + ' · с подписью в alt: ' + labelled + ' из ' + tiles.length,
         caps === 0 && labelled === tiles.length);
@@ -403,7 +431,7 @@
         rect(one('#gallery')).right <= wrap.right + 1);
     });
 
-    send(90, out);
+    send(24, out);
   };
 
   /* --- 95. подвал на телефоне: колонки, а не один столбец ---------------- */
@@ -411,7 +439,7 @@
     var out = [];
     var add = function (n, v, ok) { out.push({ n: n, v: String(v).slice(0, 140), ok: !!ok }); };
 
-    [1440, 780, 620, 430, 390].forEach(function (w) {
+    [1440, 800, 620, 430, 390].forEach(function (w) {
       frameWidth(w);
       var grid = one('.ftr__grid');
       var blocks = all('.ftr__grid > *');
@@ -420,12 +448,12 @@
       var rows = byRow(blocks);
       var pts = one('#ftr-points');
       var ptCols = pts ? String(css(pts).gridTemplateColumns).split(' ').filter(function (x) { return x !== ''; }).length : 0;
-      var wantCols = w <= 780 ? 2 : 4;
+      var wantCols = w <= 860 ? 2 : 4;
 
       add('Ширина ' + w + ': колонок в подвале', cols + ' (нужно ' + wantCols + ') · блоки по строкам ' + rows.join('/'), cols === wantCols);
       add('Ширина ' + w + ': полки подвала заполнены',
         'строк ' + rows.length + ' · блоков ' + blocks.length,
-        w <= 780 ? rows.length === 3 : rows.length === 1);
+        w <= 860 ? rows.length === 3 : rows.length === 1);
 
       /* справа не должно оставаться пустого места: крайние блоки доходят
          до края полей */
@@ -445,7 +473,7 @@
 
       add('Ширина ' + w + ': кофейни в подвале',
         (pts ? all('#ftr-points > *').length + ' записей, колонок ' + ptCols : 'список не найден'),
-        !!pts && all('#ftr-points > *').length === 5 && (w > 780 || ptCols === 2));
+        !!pts && all('#ftr-points > *').length === 5 && (w > 860 || ptCols === 2));
 
       var de = document.documentElement;
       add('Ширина ' + w + ': подвал без прокрутки вбок', (de.scrollWidth - de.clientWidth) + ' px лишних', de.scrollWidth - de.clientWidth <= 1);
@@ -855,9 +883,12 @@
       var contacts = all('#contacts-grid .contact-card');
       var ftr = one('.ftr__grid');
       var ftrCols = ftr ? String(css(ftr).gridTemplateColumns).split(' ').filter(function (x) { return x !== ''; }).length : 0;
+      /* На телефоне показываем шесть плиток из восьми: седьмая и восьмая
+         скрыты правилом для узких экранов, поэтому считаем видимые. */
+      var onScreen = all('#gallery .insta__t').filter(function (t) { return css(t).display !== 'none'; });
       add('Телефон ' + w + ': кофейни и подвал',
-        contacts.length + ' карточек кофеен · подвал ' + ftrCols + ' колонки · сетка Instagram ' + all('#gallery .insta__t').length + ' плиток',
-        contacts.length === 5 && ftrCols === 2 && all('#gallery .insta__t').length === 6);
+        contacts.length + ' карточек кофеен · подвал ' + ftrCols + ' колонки · сетка Instagram ' + onScreen.length + ' плиток',
+        contacts.length === 5 && ftrCols === 2 && onScreen.length === 6);
 
       /* Хиты бара: три плитки в ряд, ниже ещё три — проверяем симметрию */
       var hits = all('#hits-grid .item');
@@ -1355,29 +1386,18 @@
       var sr = rect(span);
       var whole = sr.left >= visible.left - 1 && sr.right <= visible.right + 1;
       var reduce = !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
-      /* Полоса бежит: надписи выезжают за край и прячутся маской — это норма,
-         а не обрезка. Проверяем три вещи: движение включено (если система не
-         просит обратного), полоса не растягивает страницу вбок и надписи не
-         переносятся внутри себя. Когда движение отключено системой, строка
-         обязана показывать слова целиком — это отдельный замер. */
-      var anim = css(row).animationName;
-      var inView = ['1440', '1024', '950', '780', '390'].length > 0;   // для читаемости отчёта
+      /* Полоса бежит: надписи выезжают за край и прячут их поля полосы — это
+         норма, а не обрезка. Проверяем, что движение включено, надписи не
+         переносятся и страница не растягивается вбок. Сам ход строки по
+         кадрам меряет часть 93. */
+      var tickerOn = css(row).transform !== 'none' || (one('#ticker') !== null && one('#ticker').classList.contains('ticker--run'));
       var noWrap = all('#ticker-row span').every(function (s) { return css(s).whiteSpace === 'nowrap'; });
       var pageWide = document.documentElement.scrollWidth - document.documentElement.clientWidth;
-      add('Ширина ' + w + ': строка в движении',
-        'animation: ' + anim + (reduce ? ' (система просит меньше движения)' : ' · ' + css(row).animationDuration),
-        reduce ? anim === 'none' : anim !== 'none');
-      add('Ширина ' + w + ': система просит меньше движения', reduce ? 'да — строка стоит' : 'нет — строка бежит',
-        true);
-      if (reduce) {
-        add('Ширина ' + w + ': остановленная строка показывает слова целиком',
-          'фраза ' + Math.round(sr.left) + '–' + Math.round(sr.right) + ' при полях ' + Math.round(visible.left) + '–' + Math.round(visible.right),
-          whole);
-      } else {
-        add('Ширина ' + w + ': бегущая строка не растягивает страницу',
-          'лишних ' + pageWide + ' px · надписи в одну линию: ' + noWrap + ' · полоса режет по краям: ' + (css(port).overflowX === 'hidden'),
-          pageWide <= 1 && noWrap && css(port).overflowX === 'hidden');
-      }
+      add('Ширина ' + w + ': бегущая строка не растягивает страницу',
+        'лишних ' + pageWide + ' px · надписи в одну линию: ' + noWrap + ' · полоса режет по краям: ' +
+          (css(port).overflowX === 'hidden') + ' · движение включено: ' + tickerOn +
+          (reduce ? ' (система просит меньше движения — строка всё равно бежит)' : ''),
+        pageWide <= 1 && noWrap && css(port).overflowX === 'hidden' && tickerOn);
     });
 
     send(13, out);
@@ -1420,7 +1440,7 @@
     var out = [];
     var add = function (n, v, ok) { out.push({ n: n, v: String(v).slice(0, 180), ok: !!ok }); };
 
-    [1440, 1200, 1024, 900, 820, 760].forEach(function (w) {
+    [1440, 1200, 1024, 900, 820, 750].forEach(function (w) {
       frameWidth(w);
       var cards = all('.tiles--notes .tile');
       if (cards.length === 0) { add('Ширина ' + w + ': пояснения предзаказа', 'блок не найден', false); return; }
@@ -1549,64 +1569,28 @@
           'строка ' + Math.round(prc.left + pl) + '/' + Math.round(prc.right - prr) +
           ' · блоки ' + Math.round(hw.left + hpad) + '/' + Math.round(hw.right - hpad),
           Math.abs((prc.left + pl) - (hw.left + hpad)) <= 2 && Math.abs((prc.right - prr) - (hw.right - hpad)) <= 2);
-        /* На телефоне строка бежит: она шире полосы и уезжает за край — это
-           норма. Важно, что полоса сама режет её по краям и страница не
-           растягивается вбок; когда система просит меньше движения, строка
-           стоит и обязана показывать все надписи без прокрутки. */
-        var tickReduce = !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
-        var tickAnim = css(row).animationName;
-        if (tickReduce) {
-          add('Строка на телефоне не обрезана',
-            'движение отключено системой · строка ' + Math.round(rect(row).width) + ' при полях ' + Math.round(prc.width - pl - prr),
-            pcs.overflowX === 'visible' && rect(row).width <= prc.width - pl - prr + 1);
-          add('Бегущая строка не движется (система просит меньше движения)', tickAnim, tickAnim === 'none');
-        } else {
-          add('Бегущая строка на телефоне движется справа налево',
-            'animation: ' + tickAnim + ' · ' + css(row).animationDuration + ' · строка шире полосы: ' +
-              Math.round(rect(row).width) + ' при ' + Math.round(prc.width - pl - prr),
-            tickAnim !== 'none' && rect(row).width > prc.width - pl - prr && pcs.overflowX === 'hidden');
-        }
-
-        /* В окне замера система обычно просит «меньше движения», поэтому
-           бегущий режим включаем принудительно теми же свойствами, что стоят
-           в медиазапросе, и проверяем главный риск — страница не должна
-           растягиваться вбок от уезжающей строки. */
-        if (tickReduce) {
-          var keep = { a: row.style.animation, w: row.style.width, f: row.style.flexWrap, o: port.style.overflow };
-          row.style.animation = 'tick 34s linear infinite';
-          row.style.width = 'max-content';
-          row.style.flexWrap = 'nowrap';
-          port.style.overflow = 'hidden';
-          var wideRow = rect(row).width;
-          var spread = document.documentElement.scrollWidth - document.documentElement.clientWidth;
-          var moved = false;
-          try {
-            var m1 = row.getBoundingClientRect().left;
-            row.style.animationPlayState = 'paused';
-            row.style.transform = 'translateX(-50%)';
-            moved = row.getBoundingClientRect().left !== m1;
-          } catch (e) { moved = false; }
-          add('Телефон: бегущая строка в движении не растягивает страницу',
-            'строка ' + Math.round(wideRow) + ' px при полосе ' + Math.round(prc.width - pl - prr) +
-              ' px · лишних вбок ' + spread + ' px · сдвиг работает: ' + moved,
-            wideRow > prc.width - pl - prr && spread <= 1);
-          row.style.animation = keep.a;
-          row.style.width = keep.w;
-          row.style.flexWrap = keep.f;
-          row.style.animationPlayState = '';
-          row.style.transform = '';
-          port.style.overflow = keep.o;
-        }
+        /* На телефоне строка бежит так же, как на большом экране: её двигает
+           скрипт, полоса сама режет надписи по краям, страница вбок не едет.
+           Настройка «меньше движения» больше не выключает полосу — иначе
+           владелец видел на телефоне неподвижные надписи. */
+        var tickRunOn = one('#ticker') !== null && one('#ticker').classList.contains('ticker--run');
+        add('Бегущая строка на телефоне включена и шире полосы',
+          'движение: ' + tickRunOn + ' · строка ' + Math.round(rect(row).width) + ' при полосе ' +
+            Math.round(prc.width - pl - prr) + ' · полоса режет по краям: ' + (pcs.overflowX === 'hidden'),
+          tickRunOn && rect(row).width > prc.width - pl - prr && pcs.overflowX === 'hidden');
+        add('Строка на телефоне не обрезана словами',
+          'слова целые: ' + all('#ticker-row span').every(function (s) { return css(s).whiteSpace === 'nowrap'; }),
+          all('#ticker-row span').every(function (s) { return css(s).whiteSpace === 'nowrap'; }));
 
         var spans = all('#ticker-row span');
         var visible = spans.filter(function (s) { return css(s).display !== 'none'; });
-        add('Надписи видны все сразу', visible.length + ' из ' + spans.length + (tickReduce ? ' (дубли скрыты)' : ''), visible.length >= 6);
+        add('Надписи видны все сразу', visible.length + ' из ' + spans.length, visible.length >= 6);
         var widest = visible.slice().sort(function (a, b) { return rect(b).width - rect(a).width; })[0];
         var lines = {};
         visible.forEach(function (s) { lines[Math.round(rect(s).top)] = 1; });
-        add(tickReduce ? 'Надписи переносятся, а не режутся' : 'Надписи стоят в одну линию',
+        add('Надписи стоят в одну линию',
           'строк ' + Object.keys(lines).length + ', самая широкая «' + String(widest.textContent || '').slice(0, 22) + '» ' + Math.round(rect(widest).width) + ' px',
-          tickReduce ? rect(widest).width <= Math.round(rect(row).width) + 1 : Object.keys(lines).length === 1);
+          Object.keys(lines).length === 1);
 
         var facts = all('.hero__facts .fact');
         var perRow = byRow(facts);
@@ -1781,8 +1765,14 @@
         /* Проверку прозрачных блоков делаем самой последней: она прокручивает
            страницу целиком и, если запустить её раньше, сбивает замеры
            переходов по пунктам меню. */
-        try { revealedBlocks(loadButtons); }
-        catch (e) { send(81, [{ n: 'Замер прозрачных блоков', v: String(e && e.message), ok: false }]); loadButtons(); }
+        var afterTicker = function () {
+          try { revealedBlocks(loadButtons); }
+          catch (e) { send(81, [{ n: 'Замер прозрачных блоков', v: String(e && e.message), ok: false }]); loadButtons(); }
+        };
+        /* Ход бегущей строки меряем тоже последним: он ждёт время и меняет
+           ширину окна замера. После него — замер ширин с паузами. */
+        try { tickerRun(function () { try { widthMap(afterTicker); } catch (e) { afterTicker(); } }); }
+        catch (e) { send(93, [{ n: 'Замер бегущей строки', v: String(e && e.message), ok: false }]); afterTicker(); }
       };
       try { desktop(); } catch (e) { send(18, [{ n: 'Замер на полной ширине', v: String(e && e.message), ok: false }]); }
       try { levels(); } catch (e) { send(16, [{ n: 'Замер уровней', v: String(e && e.message), ok: false }]); }
@@ -1790,8 +1780,8 @@
       try { footer(); } catch (e) { send(14, [{ n: 'Замер подвала', v: String(e && e.message), ok: false }]); }
       try { texts(); } catch (e) { send(13, [{ n: 'Замер надписей', v: String(e && e.message), ok: false }]); }
       try { status(); } catch (e) { send(11, [{ n: 'Замер статуса', v: String(e && e.message), ok: false }]); }
-      try { contacts(); } catch (e) { send(10, [{ n: 'Замер контактов', v: String(e && e.message), ok: false }]); }
-      try { insta(); } catch (e) { send(90, [{ n: 'Замер раздела Instagram', v: String(e && e.message), ok: false }]); }
+      try { contacts(); } catch (e) { send(21, [{ n: 'Замер контактов', v: String(e && e.message), ok: false }]); }
+      try { insta(); } catch (e) { send(24, [{ n: 'Замер раздела Instagram', v: String(e && e.message), ok: false }]); }
       try { promoPhoto(); } catch (e) { send(83, [{ n: 'Замер фото в акции', v: String(e && e.message), ok: false }]); }
       try { heroCta(); } catch (e) { send(82, [{ n: 'Замер кнопок первого экрана', v: String(e && e.message), ok: false }]); }
       try { footerGrid(); } catch (e) { send(95, [{ n: 'Замер подвала на телефоне', v: String(e && e.message), ok: false }]); }
@@ -1816,6 +1806,114 @@
         try { menuVisible(finish); } catch (e3) { finish(); }
       }
     });
+  };
+
+  /* --- 93. бегущая строка: ход по кадрам и кнопка остановки ---------------
+     Строку двигает скрипт (requestAnimationFrame), поэтому «бежит ли она»
+     проверяется только сравнением положения полосы через паузу во времени.
+     Замер идёт последним и на двух ширинах: полной и телефонной. */
+  var tickerRun = function (done) {
+    var out = [];
+    var add = function (n, v, ok) { out.push({ n: n, v: String(v).slice(0, 180), ok: !!ok }); };
+    var widths = [1440, 390];
+    var i = 0;
+
+    var at = function (w, next) {
+      frameWidth(w);
+      var row = one('#ticker-row');
+      var ticker = one('#ticker');
+      var strip = row ? row.parentElement : null;
+      var btn = one('#ticker-pause');
+      if (!row || !strip) { add('Ширина ' + w + ': бегущая строка', 'полосы нет в разметке', false); next(); return; }
+
+      setTimeout(function () {
+        var before = rect(row).left;
+        var spreadBefore = document.documentElement.scrollWidth - document.documentElement.clientWidth;
+        setTimeout(function () {
+          var shift = before - rect(row).left;
+          var spread = document.documentElement.scrollWidth - document.documentElement.clientWidth;
+          add('Ширина ' + w + ': строка бежит справа налево',
+            'сдвиг ' + Math.round(shift) + ' px за 700 мс · режим движения: ' +
+              !!(ticker && ticker.classList.contains('ticker--run')) +
+              ' · полоса режет по краям: ' + (css(strip).overflowX === 'hidden'),
+            shift >= 4 && css(strip).overflowX === 'hidden');
+          add('Ширина ' + w + ': бегущая строка не растягивает страницу',
+            'лишних ' + spread + ' px (до замера ' + spreadBefore + ' px)', spread <= 1);
+
+          if (!btn) { add('Ширина ' + w + ': кнопка остановки строки', 'кнопки нет', false); next(); return; }
+          btn.click();
+          var held = rect(row).left;
+          setTimeout(function () {
+            var stopped = Math.abs(rect(row).left - held) < 1;
+            btn.click();
+            var resumedAt = rect(row).left;
+            setTimeout(function () {
+              var resumed = resumedAt - rect(row).left;
+              add('Ширина ' + w + ': кнопка останавливает строку и снова запускает',
+                'остановилась: ' + stopped + ' · после второго нажатия сдвиг ' + Math.round(resumed) +
+                  ' px · aria-pressed: ' + btn.getAttribute('aria-pressed'),
+                stopped && resumed >= 2 && btn.getAttribute('aria-pressed') === 'false');
+              next();
+            }, 700);
+          }, 450);
+        }, 700);
+      }, 250);
+    };
+
+    var step = function () {
+      if (i >= widths.length) { frameWidth(1440); send(93, out); if (done) done(); return; }
+      var w = widths[i]; i += 1;
+      at(w, step);
+    };
+    step();
+  };
+
+  /* --- 85. ширины с ожиданием: как блоки укладываются после смены ширины ----
+     Смена ширины окна замера и чтение раскладки в тот же миг давали странные
+     числа на границах правил (780 и 760 px): раскладка уже узкая, а стили ещё
+     «широкие». Здесь ширина ставится и выдерживается пауза, поэтому видно, как
+     страница выглядит на самом деле, а не в переходный миг. */
+  var widthMap = function (done) {
+    var out = [];
+    var add = function (n, v, ok) { out.push({ n: n, v: String(v).slice(0, 180), ok: ok === undefined ? true : !!ok }); };
+    var widths = [1440, 1100, 1024, 900, 820, 780, 761, 760, 700, 620, 430, 390];
+    var i = 0;
+
+    var cols = function (el) {
+      return el ? String(css(el).gridTemplateColumns).split(' ').filter(function (x) { return x !== ''; }).length : 0;
+    };
+    var probe = function (w, next) {
+      frameWidth(w);
+      setTimeout(function () {
+        var notes = one('.tiles--notes');
+        var notesTile = one('.tiles--notes .tile');
+        var noteTitle = one('.tiles--notes .tile__t');
+        var noteLines = 0;
+        if (noteTitle) {
+          var lh = parseFloat(css(noteTitle).lineHeight) || parseFloat(css(noteTitle).fontSize) * 1.2;
+          noteLines = Math.round(rect(noteTitle).height / lh);
+        }
+        var cards = all('#contacts-grid .contact-card');
+        var five = cards.length === 5;
+        var lastWide = five && Math.abs(rect(cards[4]).width - rect(one('#contacts-grid')).width) <= 2;
+        add('Ширина ' + w + ' (с паузой)',
+          'окно ' + document.documentElement.clientWidth +
+            ' · правила 780: ' + matchMedia('(max-width: 780px)').matches + ', 760: ' + matchMedia('(max-width: 760px)').matches +
+            ' · пояснения ' + cols(notes) + ' кол. (' + (notesTile ? Math.round(rect(notesTile).width) : 0) + ' px, строк ' + noteLines + ')' +
+            ' · кофейни ' + byRow(cards).join('/') + (lastWide ? ' (пятая во всю ширину)' : '') +
+            ' · подвал ' + cols(one('.ftr__grid')) + ' кол., кофейни в подвале ' + cols(one('#ftr-points')) + ' кол.' +
+            ' · Instagram ' + all('#gallery .insta__t').filter(function (t) { return css(t).display !== 'none'; }).length +
+            ' из ' + all('#gallery .insta__t').length,
+          true);
+        next();
+      }, 350);
+    };
+    var step = function () {
+      if (i >= widths.length) { frameWidth(1440); send(85, out); if (done) done(); return; }
+      var w = widths[i]; i += 1;
+      probe(w, step);
+    };
+    step();
   };
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', function () { setTimeout(boot, 400); });

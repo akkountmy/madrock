@@ -153,23 +153,28 @@ else ok(`${appClasses.size} классов из шаблонов описаны 
 
 /* 7. бегущая строка должна бежать внутри обычных полей сайта: её обрезает тот же
       контейнер .wrap, что задаёт края секций, — иначе надписи вроде
-      «10-й напиток в подарок» уезжают за поля блоков */
+      «10-й напиток в подарок» уезжают за поля блоков. Край растворяем
+      градиентом, а не маской: в Safari анимация внутри маскированного блока
+      замирает — именно из-за этого строка стояла на телефоне. */
 const tickerBefore = problems.length
-if (!/<div class="ticker"[^>]*>\s*<div class="wrap">\s*<div class="ticker__row"/.test(html)) {
+if (!/<div class="ticker"[^>]*>\s*<div class="wrap">[\s\S]{0,400}?<div class="ticker__row"/.test(html)) {
   fail('бегущая строка не обёрнута в .wrap — её края разойдутся с краями блоков сайта')
 }
 const tickerWrap = css.match(/\.ticker\s+\.wrap\s*\{([^}]*)\}/)
 if (tickerWrap === null) fail('нет правила .ticker .wrap — строка не ограничена полями сайта')
 else {
   if (!/overflow\s*:\s*hidden/.test(tickerWrap[1])) fail('.ticker .wrap не обрезает строку по полям')
-  if (!/mask-image/.test(tickerWrap[1])) fail('.ticker .wrap без маски — край строки обрывается резко')
+  if (/mask-image/.test(tickerWrap[1])) fail('.ticker .wrap снова на маске — в Safari строка внутри неё замирает')
+}
+if (!/\.ticker\s+\.wrap::before[\s\S]{0,300}?linear-gradient/.test(css)) {
+  fail('край строки не растворяется градиентом — обрыв будет резким')
+}
+if (!/\.ticker:not\(\.ticker--run\)\s+\.wrap\s*\{[^}]*overflow\s*:\s*visible/.test(css)) {
+  fail('без движения строка должна показываться целиком: .ticker:not(.ticker--run) .wrap → overflow: visible')
 }
 const tickerBox = css.match(/\.ticker\s*\{([^}]*)\}/)
 if (tickerBox !== null && /padding\s*:\s*[^;]*clamp/.test(tickerBox[1])) {
   fail('у .ticker свои боковые отступы — строка разойдётся с полями блоков')
-}
-if (!/\.ticker\s+\.wrap\s*\{[^}]*overflow\s*:\s*visible/.test(css)) {
-  fail('на телефоне строка должна показываться целиком: .ticker .wrap → overflow: visible')
 }
 if (problems.length === tickerBefore) ok('бегущая строка ограничена теми же полями, что и блоки сайта')
 
@@ -199,17 +204,28 @@ const absolute = [...html.matchAll(/(?:src|href)="(\/(?:madrock|assets)\/[^"]*)"
 if (absolute.length) fail(`в index.html абсолютные пути: ${absolute.slice(0, 5).join(', ')}`)
 else ok('пути к файлам относительные — сайт заработает в подпапке репозитория')
 
-/* 10. бегущая строка на телефоне должна бежать (кроме режима «меньше движения»):
-      правило живёт в отдельном медиазапросе, и его легко потерять при правках */
-const mobileTicker = css.match(/@media \(max-width: 780px\) and \(prefers-reduced-motion: no-preference\) \{([\s\S]*?)\n\}/)
-if (!mobileTicker) fail('нет медиазапроса бегущей строки для телефона — надписи на телефоне не будут двигаться')
+/* 10. строку двигает скрипт, а не CSS-анимация: медиазапрос «меньше движения»
+      выключал анимацию у всех, кто просто не менял настройку телефона, а маска
+      в Safari морозила её. Проверяем сам движок, кнопку остановки (WCAG 2.2.2)
+      и то, что CSS-анимация не вернулась обратно. */
+const tickerEngine = appJs.match(/var initTicker = function[\s\S]*?\n  \};/)
+if (tickerEngine === null) fail('в app.js нет движка бегущей строки — полоса не поедет')
 else {
-  const body = mobileTicker[1]
-  if (!/\.ticker__row\s*\{[^}]*animation:\s*tick/.test(body)) fail('на телефоне бегущей строке не задана анимация')
-  else if (!/\.ticker__row\s*\{[^}]*nowrap/.test(body)) fail('на телефоне надписи строки могут переноситься — движение сломается')
-  else if (!/\.ticker \.wrap\s*\{[^}]*overflow:\s*hidden/.test(body)) fail('полоса не режет строку по краям — страница поедет вбок')
-  else ok('бегущая строка на телефоне движется справа налево, край прячет маску')
+  const body = tickerEngine[0]
+  if (!/requestAnimationFrame\(/.test(body)) fail('движок строки не двигает надписи по кадрам')
+  else if (!/translate3d\(/.test(body)) fail('движок строки не сдвигает полосу через translate3d')
+  else if (!/ticker--run/.test(body)) fail('движок строки не включает режим движения классом ticker--run')
+  else if (!/ticker-pause/.test(body)) fail('у движущейся строки нет кнопки остановки (WCAG 2.2.2)')
+  else if (!/initTicker\(\);/.test(appJs)) fail('движок бегущей строки написан, но не запускается при загрузке')
+  else ok('строку двигает скрипт: полоса бежит на любой ширине, кнопка останавливает')
 }
+if (/animation:\s*tick\b/.test(css) || /@keyframes\s+tick\b/.test(css)) {
+  fail('в CSS вернулась анимация строки — движение должно идти только из скрипта')
+}
+if (!/id="ticker-pause"[^>]*aria-pressed="false"/.test(body)) {
+  fail('нет кнопки остановки строки с aria-pressed в разметке')
+}
+if (!/\.ticker__pause\b/.test(css)) fail('кнопка остановки строки без стилей')
 
 /* --- отчёт --- */
 console.log('— проверка MADROCK —')

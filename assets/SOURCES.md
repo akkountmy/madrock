@@ -131,6 +131,15 @@ cheesecake/eclair — десерты, icecream — мороженое шарик
 | ig6.jpg | [Passion fruit & raspberry cheesecake - Jacob's Bakery + Cafe 2025-10-08.jpg](https://commons.wikimedia.org/wiki/File%3APassion%20fruit%20%26%20raspberry%20cheesecake%20-%20Jacob's%20Bakery%20%2B%20Cafe%202025-10-08.jpg) | Andy Li | CC0 |
 | ig7.jpg | [Boathouse Ōhori Park The interior of the café Ōhorikōen Chūō-ku Fukuoka 20260609](https://commons.wikimedia.org/wiki/File%3ABoathouse%20%C5%8Chori%20Park%20The%20interior%20of%20the%20caf%C3%A9%20%C5%8Chorik%C5%8Den%20Ch%C5%AB%C5%8D-ku%20Fukuoka%2020260609%20173802.jpg) | Hirho | CC BY 4.0 |
 | ig8.jpg | [Cup of coffee with latte art 2016.jpg](https://commons.wikimedia.org/wiki/File%3ACup%20of%20coffee%20with%20latte%20art%202016.jpg) | Abdulrohmatt | CC BY-SA 4.0 |
+| ig9.jpg | [Coffee Latte Loaf - Trading Post Coffee Roasters 2026-06-19.jpg](https://commons.wikimedia.org/wiki/File%3ACoffee%20Latte%20Loaf%20-%20Trading%20Post%20Coffee%20Roasters%202026-06-19.jpg) | Andy Li | CC0 |
+| ig10.jpg | [All butter croissant and latte - Blend Coffee Co. 2026-01-02.jpg](https://commons.wikimedia.org/wiki/File%3AAll%20butter%20croissant%20and%20latte%20-%20Blend%20Coffee%20Co.%202026-01-02.jpg) | Andy Li | CC0 |
+
+Две последние плитки (ig9, ig10) добавлены позже: мастер — кадр 4:3 1200×900
+(объект по центру, около 60–75 % высоты), из его центра собираются квадратные
+варианты 400×400 и 800×800 — их и отдаёт сайт (на большом экране браузер
+оставляет от квадрата центральную полосу 4:3). ig9 — кофейный кекс Latte Loaf
+с кремовыми завитками (десерт к кофе), ig10 — круассан с латте на деревянном
+столе (завтрак в кофейне). Обе без чужих брендов и без людей в кадре.
 
 ## Лицензии, требующие полного текста
 

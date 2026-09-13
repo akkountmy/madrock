@@ -192,16 +192,25 @@ async function generate() {
   for (const { name, base, file } of sources) {
     const meta = await sharp(file).metadata()
     const square = SQUARE_RE.test(base)
+    /* Плитки Instagram бывают двух утверждённых видов: квадрат 1080×1080 и
+       кадр 4:3 1200×900 (ig9, ig10 добавлены позже — объект в центре кадра).
+       Из 4:3-мастера квадратные варианты собираются центральным кропом. */
     const want = square ? { width: 1080, height: 1080 } : { width: 1200, height: 900 }
-    if (meta.width !== want.width || meta.height !== want.height) {
-      throw new Error(`${name}: ожидался утверждённый кадр ${want.width}×${want.height}, на диске ${meta.width}×${meta.height}`)
+    const allowed = square
+      ? [[1080, 1080], [1200, 900]]
+      : [[1200, 900]]
+    if (!allowed.some(([w2, h2]) => meta.width === w2 && meta.height === h2)) {
+      throw new Error(`${name}: ожидался утверждённый кадр ${allowed.map(([w2, h2]) => `${w2}×${h2}`).join(' или ')}, на диске ${meta.width}×${meta.height}`)
     }
     if (meta.orientation && meta.orientation !== 1) {
       notes.push(`${name}: EXIF orientation=${meta.orientation} — поворот не применяем, кадр берём как хранится`)
     }
 
     for (const { width, height, size } of planFor(base)) {
-      if (Math.abs(meta.width / meta.height - width / height) > 0.002) {
+      /* Квадратный вариант из 4:3-мастера — не ошибка: sharp возьмёт
+         центральный кроп (fit: cover), так же собраны ig9 и ig10. */
+      const cropped = square && Math.abs(meta.width / meta.height - width / height) > 0.002
+      if (!cropped && Math.abs(meta.width / meta.height - width / height) > 0.002) {
         throw new Error(`${name}: ${width}×${height} не совпадает по пропорциям с источником — потребовался бы кроп`)
       }
       // отдельный пайплайн на каждый вариант: никаких остатков предыдущего

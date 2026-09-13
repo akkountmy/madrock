@@ -16,8 +16,29 @@
     errors.push('promise: ' + String((e.reason && e.reason.message) || e.reason).slice(0, 60));
   });
 
+  /* Весь отчёт едет в адресе запроса: слишком длинный адрес сервер отбивает
+     (431), и проверки пропадали молча. Режем на порции по 8 КБ; номер части —
+     база × 100 + номер порции. */
+  var BEACON_BUDGET = 8000;
   var send = function (part, checks) {
-    new Image().src = '/madrock-verify?part=' + part + '&of=10&d=' + encodeURIComponent(JSON.stringify({ checks: checks }));
+    var idx = 0;
+    var chunk = [];
+    var size = 0;
+    var flush = function () {
+      if (chunk.length === 0) return;
+      new Image().src = '/madrock-verify?part=' + (part * 100 + idx) + '&of=10&d=' +
+        encodeURIComponent(JSON.stringify({ checks: chunk }));
+      idx += 1;
+      chunk = [];
+      size = 0;
+    };
+    (checks || []).forEach(function (c) {
+      var s = encodeURIComponent(JSON.stringify(c)).length + 48;
+      if (size > 0 && size + s > BEACON_BUDGET) flush();
+      chunk.push(c);
+      size += s;
+    });
+    flush();
   };
   var one = function (sel) { return document.querySelector(sel); };
   var all = function (sel) { return Array.prototype.slice.call(document.querySelectorAll(sel)); };
@@ -28,7 +49,7 @@
   var EXTERNAL = /^(https?:|tel:|viber:|mailto:)/i;
   var SCROLL_START = 1200;   // прокрутка вниз, чтобы кнопка «наверх» была видна
   var KNOWN = 'button, a[href], [data-add], [data-fav], [data-open-item], [data-promo-add], [data-point], [data-account], [data-account-view]';
-  var LAZY = '[data-cat], #veg-toggle, #hit-toggle, #sort-toggle';   // перерисовывают меню
+  var LAZY = '[data-cat], #veg-toggle, #hit-toggle, #sort-toggle, #ticker-pause';   // перерисовывают меню и полосу
 
   var label = function (el) {
     var t = String(el.textContent || '').replace(/\s+/g, ' ').trim().slice(0, 22);
@@ -202,6 +223,26 @@
       if (el) { var b3 = dead.length; var okTog = el.isConnected; clickCheck(el, box); record(el, okTog, b3); checked += 1; }
     });
 
+    /* Кнопка остановки бегущей строки меняет только своё состояние и ход
+       полосы — в общий список «мёртвых» она бы попала зря, поэтому её
+       проверяем отдельно: состояние переключается и возвращается обратно. */
+    var tickBtn = one('#ticker-pause');
+    if (tickBtn && visible(tickBtn)) {
+      var tickRow = one('#ticker-row');
+      var was = tickBtn.getAttribute('aria-pressed');
+      var wasLabel = tickBtn.getAttribute('aria-label');
+      var p1 = tickRow ? Math.round(tickRow.getBoundingClientRect().left) : 0;
+      tickBtn.click();
+      var on = tickBtn.getAttribute('aria-pressed') === 'true' && tickBtn.getAttribute('aria-label') !== wasLabel;
+      var stopAt = tickRow ? Math.round(tickRow.getBoundingClientRect().left) : 0;
+      tickBtn.click();
+      var off = tickBtn.getAttribute('aria-pressed') === was && tickBtn.getAttribute('aria-label') === wasLabel;
+      add('Ширина ' + w + ': кнопка остановки бегущей строки переключается',
+        'пауза включилась: ' + on + ' · полоса встала: ' + (Math.abs(stopAt - p1) <= 1) +
+          ' · вернулась в исходное: ' + off,
+        on && off);
+    }
+
     add('Ширина ' + w + ': кнопок проверено',
       checked + ' нажатий · ссылок-якорей ' + box.links + ' (их проверяет отдельный прогон) · внешних не открываем: ' + external,
       checked > 20);
@@ -315,7 +356,7 @@
       add('Корзина и оформление', String(e && e.message), false);
     }
     resetAll();
-    send(50, out);
+    send(51, out);
   };
 
   /* --- 60. карточка товара: настройки и добавление ------------------------ */
@@ -395,7 +436,7 @@
       add('Карточка товара', String(e && e.message), false);
     }
     resetAll();
-    send(60, out);
+    send(61, out);
   };
 
   /* --- уборка после проверки ----------------------------------------------
@@ -412,7 +453,7 @@
       left = JSON.parse(localStorage.getItem('madrock.cart.v1') || '[]').length;
     } catch (e) {}
     add('После проверки предзаказ чистый', left === 0 ? 'позиций нет' : 'осталось ' + left, left === 0);
-    send(70, out);
+    send(71, out);
   };
 
   /* --- 100. нажатие по вложенному элементу кнопки -------------------------
@@ -475,17 +516,17 @@
         : (dead.length ? dead.length + ' шт: ' + dead.slice(0, 6).join(' | ') : 'срабатывает у всех ' + checked),
       dead.length === 0);
 
-    send(100, out);
+    send(101, out);
   };
 
   /* --- запуск после общих замеров ----------------------------------------- */
   var boot = function (tries) {
     if (window.__madrockAuditDone === true || (tries || 0) > 40) {
-      try { sweep(1440, 30); } catch (e) { send(30, [{ n: 'Кнопки на полной ширине', v: String(e && e.message), ok: false }]); }
-      try { sweep(390, 40); } catch (e) { send(40, [{ n: 'Кнопки на телефоне', v: String(e && e.message), ok: false }]); }
-      try { checkout(); } catch (e) { send(50, [{ n: 'Корзина и оформление', v: String(e && e.message), ok: false }]); }
-      try { itemModal(); } catch (e) { send(60, [{ n: 'Карточка товара', v: String(e && e.message), ok: false }]); }
-      try { innerClicks(); } catch (e) { send(100, [{ n: 'Нажатие по вложенному элементу', v: String(e && e.message), ok: false }]); }
+      try { sweep(1440, 31); } catch (e) { send(31, [{ n: 'Кнопки на полной ширине', v: String(e && e.message), ok: false }]); }
+      try { sweep(390, 41); } catch (e) { send(41, [{ n: 'Кнопки на телефоне', v: String(e && e.message), ok: false }]); }
+      try { checkout(); } catch (e) { send(51, [{ n: 'Корзина и оформление', v: String(e && e.message), ok: false }]); }
+      try { itemModal(); } catch (e) { send(61, [{ n: 'Карточка товара', v: String(e && e.message), ok: false }]); }
+      try { innerClicks(); } catch (e) { send(101, [{ n: 'Нажатие по вложенному элементу', v: String(e && e.message), ok: false }]); }
       var frame = window.frameElement;
       if (frame) frame.style.width = '1440px';
       resetAll();

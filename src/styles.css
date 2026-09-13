@@ -271,33 +271,53 @@ section[id] { scroll-margin-top: calc(var(--hdr-h) + 14px); }
    растворяет текст вместо жёсткого обреза. */
 .ticker {
   border-block: 1px solid var(--line); background: var(--ink-2);
-  padding-block: .7rem; position: relative; z-index: 1;
+  padding-block: .7rem; position: relative; z-index: 1; max-width: 100%;
 }
-.ticker .wrap {
-  overflow: hidden;
-  -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 5%, #000 95%, transparent 100%);
-  mask-image: linear-gradient(90deg, transparent 0, #000 5%, #000 95%, transparent 100%);
+.ticker .wrap { overflow: hidden; position: relative; }
+/* Края растворяются градиентом поверх полосы. Маску (mask-image) не
+   используем: в Safari анимация внутри маскированного блока замирает —
+   именно поэтому на телефоне строка стояла. */
+.ticker .wrap::before,
+.ticker .wrap::after {
+  content: ''; position: absolute; top: 0; bottom: 0; width: 6%; z-index: 1; pointer-events: none;
 }
-.ticker__row { display: flex; gap: 2.4rem; width: max-content; animation: tick 34s linear infinite; }
+.ticker .wrap::before { left: 0; background: linear-gradient(90deg, var(--ink-2), rgba(0, 0, 0, 0)); }
+.ticker .wrap::after { right: 0; background: linear-gradient(270deg, var(--ink-2), rgba(0, 0, 0, 0)); }
+/* Строку двигает скрипт: translate3d каждый кадр. Так движение не зависит ни
+   от системной настройки «меньше движения», ни от особенностей движка. */
+.ticker__row { display: flex; gap: 2.4rem; width: max-content; will-change: transform; }
 .ticker__row span { font-family: var(--font-display); font-size: .95rem; font-weight: 600; letter-spacing: .04em; color: var(--muted); text-transform: uppercase; white-space: nowrap; }
 .ticker__row span b { color: var(--amber); }
-@keyframes tick { to { transform: translateX(-50%); } }
-/* Система просит меньше движения — строка не бежит. Тогда она не должна
-   замирать обрезанной: показываем все надписи сразу, компактно, чтобы полоса
-   занимала две строки, а не три-четыре. */
-@media (prefers-reduced-motion: reduce) {
-  html { scroll-behavior: auto; }
-  .ticker .wrap { overflow: visible; -webkit-mask-image: none; mask-image: none; }
-  .ticker__row {
-    animation: none; width: auto; flex-wrap: wrap; justify-content: center;
-    gap: .3rem .9rem; text-align: center;
-  }
-  .ticker__row span { font-size: .8rem; letter-spacing: .02em; }
-  .ticker__row span:nth-child(n + 10) { display: none; }
+/* Пока скрипт не включил движение (или надписи короче полосы), строка лежит
+   по центру в две строки: полоса не выглядит обрезанной. */
+.ticker:not(.ticker--run) .wrap { overflow: visible; }
+.ticker:not(.ticker--run) .wrap::before,
+.ticker:not(.ticker--run) .wrap::after { display: none; }
+.ticker:not(.ticker--run) .ticker__row {
+  width: auto; flex-wrap: wrap; justify-content: center;
+  gap: .3rem .9rem; text-align: center;
 }
+.ticker:not(.ticker--run) .ticker__row span { font-size: .8rem; letter-spacing: .02em; }
+.ticker:not(.ticker--run) .ticker__row span:nth-child(n + 10) { display: none; }
 /* чем уже окно, тем меньше надписей оставляем: так полоса держится в две строки */
-@media (prefers-reduced-motion: reduce) and (max-width: 1199px) { .ticker__row span:nth-child(n + 9) { display: none; } }
-@media (prefers-reduced-motion: reduce) and (max-width: 1099px) { .ticker__row span:nth-child(n + 7) { display: none; } }
+@media (max-width: 1199px) { .ticker:not(.ticker--run) .ticker__row span:nth-child(n + 9) { display: none; } }
+@media (max-width: 1099px) { .ticker:not(.ticker--run) .ticker__row span:nth-child(n + 7) { display: none; } }
+/* Движущаяся строка обязана иметь механизм остановки (WCAG 2.2.2). */
+.ticker__pause {
+  position: absolute; right: .4rem; top: 50%; transform: translateY(-50%); z-index: 2;
+  width: 26px; height: 26px; padding: 0; border: 0; border-radius: 50%;
+  background: rgba(14, 14, 14, .55); cursor: pointer;
+  display: flex; align-items: center; justify-content: center; gap: 4px;
+}
+.ticker__pause::before,
+.ticker__pause::after { content: ''; width: 2px; height: 10px; border-radius: 1px; background: var(--muted); }
+.ticker__pause[aria-pressed='true']::before {
+  width: 0; height: 0; background: none; border-radius: 0; margin-left: 2px;
+  border-left: 8px solid var(--muted); border-top: 5px solid transparent; border-bottom: 5px solid transparent;
+}
+.ticker__pause[aria-pressed='true']::after { display: none; }
+.ticker:not(.ticker--run) .ticker__pause { display: none; }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
 
 /* --- hero ---------------------------------------------------------------- */
 /* Титульный блок — карточка по ширине блока «Акция недели»: снимок виден,
@@ -435,9 +455,11 @@ section[id] { scroll-margin-top: calc(var(--hdr-h) + 14px); }
 .tiles--notes .tile__t { font-size: .95rem; }
 /* на узких экранах в трёх колонках заголовку не хватает места — ставим в столбик */
 /* Промежуточный шаг: без него три пояснения на 900–1100 px становились
-   тремя абзацами во всю ширину, минуя две колонки */
-@media (max-width: 1100px) and (min-width: 761px) { .tiles--notes { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
-@media (max-width: 760px) { .tiles--notes { grid-template-columns: 1fr; } }
+   тремя абзацами во всю ширину, минуя две колонки. Две колонки держим до
+   861 px: ниже заголовку «Оплата картой или бонусами» нужно 314 px, и на
+   761–860 px места впритык — там пояснение становится во всю ширину. */
+@media (max-width: 1100px) and (min-width: 861px) { .tiles--notes { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 860px) { .tiles--notes { grid-template-columns: 1fr; } }
 
 /* --- фото-слоты с фолбэком ----------------------------------------------- */
 .ph { position: relative; overflow: hidden; background: linear-gradient(140deg, var(--surface-3), var(--surface-2) 55%, #1d1d1d); }
@@ -742,6 +764,12 @@ section[id] { scroll-margin-top: calc(var(--hdr-h) + 14px); }
 /* Плитки стоят ровно так же, как фотографии в блоке меню: та же сетка, тот же
    кадр 4:3 (на телефоне — квадрат), поэтому раздел не выбивается из ряда */
 .insta { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: var(--gap); }
+/* Восемь кадров показываем там, где ряд вмещает четыре плитки: 4 + 4 ровно.
+   На телефоне в ряд встают три, и восемь дали бы неполный последний ряд —
+   поэтому там остаются первые шесть (3 + 3). */
+/* Плитки Instagram: на узких экранах показываем шесть из восьми (3 + 3) —
+   восьмёрка в три колонки дала бы неполный последний ряд */
+@media (max-width: 860px) { #gallery .insta__t:nth-child(n + 7) { display: none; } }
 .insta__t { aspect-ratio: 4 / 3; border-radius: var(--r-sm); position: relative; overflow: hidden; }
 /* Обёртка фото обязана повторять рамку плитки: без этого квадратный кадр
    Instagram рисовался квадратом внутри кадра 4:3 и низ срезался */
@@ -1074,8 +1102,6 @@ a.insta__t:focus-visible { outline: 2px solid var(--amber); outline-offset: 3px;
    Бегущая строка шире экрана по своей природе: она обрезается контейнером,
    но на узких экранах браузер всё равно считал лишнюю ширину у документа. */
 html { overflow-x: clip; }
-.ticker { max-width: 100%; contain: paint; }
-.ticker__row { will-change: transform; }
 
 /* --- кофейни в предзаказе: пять карточек в один ряд -----------------------
    Блок занимает всю ширину секции, а карточки стали компактнее — поэтому все
@@ -1186,10 +1212,11 @@ html { overflow-x: clip; }
 }
 /* на средних экранах пять карточек в строку не помещаются — по три */
 @media (min-width: 781px) and (max-width: 1099px) { .contacts { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
-/* На телефоне кофейни идут по две в ряд, а пятая занимает всю ширину:
+/* На узких экранах кофейни идут по две в ряд, а пятая занимает всю ширину:
    так блок читается ровной сеткой 2+2+1 и не выбивается из стиля сайта
-   (те же скругления, фото в полосе, кнопка внизу карточки). */
-@media (max-width: 780px) {
+   (те же скругления, фото в полосе, кнопка внизу карточки). Держим этот вид
+   до 860 px: на 781–860 px пять карточек в три колонки сжимались до 250 px. */
+@media (max-width: 860px) {
   .contacts { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .55rem; }
   #contacts-grid .contact-card:nth-child(5) { grid-column: 1 / -1; }
   .contact-card__map { height: 150px; }
@@ -1210,23 +1237,24 @@ html { overflow-x: clip; }
 }
 /* у пятой карточки фото шире — держим ту же высоту полосы, кадр обрезается
    по центру и блок остаётся ровным */
-@media (max-width: 780px) { #contacts-grid .contact-card:nth-child(5) .contact-card__map { height: 170px; } }
+@media (max-width: 860px) { #contacts-grid .contact-card:nth-child(5) .contact-card__map { height: 170px; } }
 
-/* Бегущая строка на телефоне тоже бежит — справа налево, как на большом
-   экране. Правило действует только у тех, кто не просил систему убрать
-   движение: в этом режиме ниже остаётся статичная полоса со всеми надписями. */
-@media (max-width: 780px) and (prefers-reduced-motion: no-preference) {
-  .ticker .wrap {
-    overflow: hidden;
-    -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 7%, #000 93%, transparent 100%);
-    mask-image: linear-gradient(90deg, transparent 0, #000 7%, #000 93%, transparent 100%);
-  }
-  .ticker__row {
-    animation: tick 34s linear infinite;
-    width: max-content; flex-wrap: nowrap; justify-content: flex-start;
-    gap: 1.6rem; text-align: left;
-  }
+/* Подвал на средних экранах: две колонки держим до 860 px — так на 781–860 px
+   полки не дробятся на четыре узкие колонки и список кофеен остаётся парным. */
+@media (max-width: 860px) {
+  .ftr__grid { grid-template-columns: 1fr 1fr; gap: 1.7rem 1.2rem; }
+  .ftr__grid > :first-child { grid-column: 1 / -1; }
+  .ftr__grid > :last-child { grid-column: 1 / -1; }
+  #ftr-points { grid-template-columns: 1fr 1fr; gap: .6rem 1rem; }
+}
+
+/* Бегущая строка на телефоне бежит так же, как на большом экране: движение
+   включает скрипт (он же показывает кнопку остановки), поэтому здесь только
+   размеры — надписи держим в одну линию, иначе движение ломается. */
+@media (max-width: 780px) {
+  .ticker__row { gap: 1.6rem; }
   .ticker__row span { font-size: .78rem; letter-spacing: .02em; white-space: nowrap; }
+  .ticker__pause { width: 24px; height: 24px; right: .2rem; }
 }
 
 /* --- мобильная версия: правки по замечаниям ------------------------------ */
@@ -1341,8 +1369,5 @@ body.acc-on > .totop, body.acc-on > .drawer { display: none; }
      подложка окна, поэтому 100vw здесь давал выход за экран */
   .modal__c--account { width: 100%; max-height: 92vh; padding: 1.2rem; }
 }
-/* На телефоне строка бежит, поэтому надписи остаются в одну линию: перенос
-   внутри надписи ломал бы движение. Обрезку по краям прячет маска полосы. */
-@media (max-width: 780px) {
-  .ticker__row span { white-space: nowrap; }
-}
+/* Надписи строки всегда в одну линию: перенос внутри надписи ломал бы
+   движение. Обрезку по краям прячет градиент полосы. */

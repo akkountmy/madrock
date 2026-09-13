@@ -102,7 +102,7 @@ for (const r of rows) {
   if (r.ext === 'jpg' && r.format !== 'JPEG') bad.push(r.name + ' — внутри ' + r.format + ', а не JPEG')
   if (![400, 800, 1280].includes(r.label)) bad.push(r.name + ' — вариант ширины ' + r.label + ' не предусмотрен')
   if (r.w !== r.label) bad.push(r.name + ' — ширина картинки ' + r.w + ' вместо ' + r.label)
-  const square = /^ig\d$/.test(r.base)
+  const square = /^ig\d+$/.test(r.base)
   const want = square ? r.label : r.label * 3 / 4
   if (r.h && r.h !== want) bad.push(r.name + ' — высота ' + r.h + ' вместо ' + want + (square ? ' (квадрат)' : ' (4:3)'))
 }

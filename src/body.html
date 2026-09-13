@@ -46,9 +46,13 @@
      десять пунктов шапки и попасть сразу в разделы -->
 <a class="skip" href="#main">Перейти к содержимому</a>
 
-<div class="ticker" aria-hidden="true">
+<div class="ticker" id="ticker">
   <div class="wrap">
-    <div class="ticker__row" id="ticker-row"></div>
+    <!-- Надписи дублируются скриптом и читаются вслух один раз: сама строка
+         скрыта от озвучки, кнопка остановки — видимая и доступная -->
+    <div class="ticker__row" id="ticker-row" aria-hidden="true"></div>
+    <button class="ticker__pause" id="ticker-pause" type="button" aria-pressed="false"
+            aria-label="Остановить бегущую строку"></button>
   </div>
 </div>
 

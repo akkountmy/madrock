@@ -26,6 +26,8 @@ const PHOTO = {
   ig5:        'ig5.jpg',
   ig6:        'ig6.jpg',
   ig7:        'ig7.jpg',
+  ig9:        'ig9.jpg',
+  ig10:       'ig10.jpg',
   interior:   'interior.jpg',
   interior2:  'interior2.jpg',
   /* Кадры barista, beans и syrup убраны из набора: они были объявлены, но ни
@@ -339,6 +341,8 @@ const GALLERY = [
   { img: PHOTO.ig5, cap: 'Кофе с шоколадом' },
   { img: PHOTO.ig6, cap: 'Манговый чизкейк' },
   { img: PHOTO.ig7, cap: 'Зал у панорамных окон' },
+  { img: PHOTO.ig9, cap: 'Кофейный кекс к латте' },
+  { img: PHOTO.ig10, cap: 'Круассан с латте на завтрак' },
 ];
 
 /* --- факты для hero ------------------------------------------------------- */
