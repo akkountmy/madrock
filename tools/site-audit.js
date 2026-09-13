@@ -1355,15 +1355,29 @@
       var sr = rect(span);
       var whole = sr.left >= visible.left - 1 && sr.right <= visible.right + 1;
       var reduce = !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
-      /* когда движение отключено, строка обязана показывать слова целиком —
-         это и проверяет следующий замер; сам факт остановки не ошибка */
+      /* Полоса бежит: надписи выезжают за край и прячутся маской — это норма,
+         а не обрезка. Проверяем три вещи: движение включено (если система не
+         просит обратного), полоса не растягивает страницу вбок и надписи не
+         переносятся внутри себя. Когда движение отключено системой, строка
+         обязана показывать слова целиком — это отдельный замер. */
+      var anim = css(row).animationName;
+      var inView = ['1440', '1024', '950', '780', '390'].length > 0;   // для читаемости отчёта
+      var noWrap = all('#ticker-row span').every(function (s) { return css(s).whiteSpace === 'nowrap'; });
+      var pageWide = document.documentElement.scrollWidth - document.documentElement.clientWidth;
       add('Ширина ' + w + ': строка в движении',
-        'animation: ' + css(row).animationName + (reduce ? ' (система просит меньше движения)' : ''), true);
+        'animation: ' + anim + (reduce ? ' (система просит меньше движения)' : ' · ' + css(row).animationDuration),
+        reduce ? anim === 'none' : anim !== 'none');
       add('Ширина ' + w + ': система просит меньше движения', reduce ? 'да — строка стоит' : 'нет — строка бежит',
         true);
-      add('Ширина ' + w + ': «10-й напиток в подарок» видна целиком',
-        'фраза ' + Math.round(sr.left) + '–' + Math.round(sr.right) + ' при полях ' + Math.round(visible.left) + '–' + Math.round(visible.right),
-        whole);
+      if (reduce) {
+        add('Ширина ' + w + ': остановленная строка показывает слова целиком',
+          'фраза ' + Math.round(sr.left) + '–' + Math.round(sr.right) + ' при полях ' + Math.round(visible.left) + '–' + Math.round(visible.right),
+          whole);
+      } else {
+        add('Ширина ' + w + ': бегущая строка не растягивает страницу',
+          'лишних ' + pageWide + ' px · надписи в одну линию: ' + noWrap + ' · полоса режет по краям: ' + (css(port).overflowX === 'hidden'),
+          pageWide <= 1 && noWrap && css(port).overflowX === 'hidden');
+      }
     });
 
     send(13, out);
@@ -1535,20 +1549,64 @@
           'строка ' + Math.round(prc.left + pl) + '/' + Math.round(prc.right - prr) +
           ' · блоки ' + Math.round(hw.left + hpad) + '/' + Math.round(hw.right - hpad),
           Math.abs((prc.left + pl) - (hw.left + hpad)) <= 2 && Math.abs((prc.right - prr) - (hw.right - hpad)) <= 2);
-        add('Строка на телефоне не обрезана',
-          'overflow-x: ' + pcs.overflowX + ' · строка ' + Math.round(rect(row).width) + ' при полях ' + Math.round(prc.width - pl - prr),
-          pcs.overflowX === 'visible' && rect(row).width <= prc.width - pl - prr + 1);
-        add('Бегущая строка не движется', css(row).animationName, css(row).animationName === 'none');
+        /* На телефоне строка бежит: она шире полосы и уезжает за край — это
+           норма. Важно, что полоса сама режет её по краям и страница не
+           растягивается вбок; когда система просит меньше движения, строка
+           стоит и обязана показывать все надписи без прокрутки. */
+        var tickReduce = !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+        var tickAnim = css(row).animationName;
+        if (tickReduce) {
+          add('Строка на телефоне не обрезана',
+            'движение отключено системой · строка ' + Math.round(rect(row).width) + ' при полях ' + Math.round(prc.width - pl - prr),
+            pcs.overflowX === 'visible' && rect(row).width <= prc.width - pl - prr + 1);
+          add('Бегущая строка не движется (система просит меньше движения)', tickAnim, tickAnim === 'none');
+        } else {
+          add('Бегущая строка на телефоне движется справа налево',
+            'animation: ' + tickAnim + ' · ' + css(row).animationDuration + ' · строка шире полосы: ' +
+              Math.round(rect(row).width) + ' при ' + Math.round(prc.width - pl - prr),
+            tickAnim !== 'none' && rect(row).width > prc.width - pl - prr && pcs.overflowX === 'hidden');
+        }
+
+        /* В окне замера система обычно просит «меньше движения», поэтому
+           бегущий режим включаем принудительно теми же свойствами, что стоят
+           в медиазапросе, и проверяем главный риск — страница не должна
+           растягиваться вбок от уезжающей строки. */
+        if (tickReduce) {
+          var keep = { a: row.style.animation, w: row.style.width, f: row.style.flexWrap, o: port.style.overflow };
+          row.style.animation = 'tick 34s linear infinite';
+          row.style.width = 'max-content';
+          row.style.flexWrap = 'nowrap';
+          port.style.overflow = 'hidden';
+          var wideRow = rect(row).width;
+          var spread = document.documentElement.scrollWidth - document.documentElement.clientWidth;
+          var moved = false;
+          try {
+            var m1 = row.getBoundingClientRect().left;
+            row.style.animationPlayState = 'paused';
+            row.style.transform = 'translateX(-50%)';
+            moved = row.getBoundingClientRect().left !== m1;
+          } catch (e) { moved = false; }
+          add('Телефон: бегущая строка в движении не растягивает страницу',
+            'строка ' + Math.round(wideRow) + ' px при полосе ' + Math.round(prc.width - pl - prr) +
+              ' px · лишних вбок ' + spread + ' px · сдвиг работает: ' + moved,
+            wideRow > prc.width - pl - prr && spread <= 1);
+          row.style.animation = keep.a;
+          row.style.width = keep.w;
+          row.style.flexWrap = keep.f;
+          row.style.animationPlayState = '';
+          row.style.transform = '';
+          port.style.overflow = keep.o;
+        }
 
         var spans = all('#ticker-row span');
         var visible = spans.filter(function (s) { return css(s).display !== 'none'; });
-        add('Надписи видны все сразу', visible.length + ' из ' + spans.length + ' (дубли скрыты)', visible.length >= 6);
+        add('Надписи видны все сразу', visible.length + ' из ' + spans.length + (tickReduce ? ' (дубли скрыты)' : ''), visible.length >= 6);
         var widest = visible.slice().sort(function (a, b) { return rect(b).width - rect(a).width; })[0];
         var lines = {};
         visible.forEach(function (s) { lines[Math.round(rect(s).top)] = 1; });
-        add('Надписи переносятся, а не режутся',
+        add(tickReduce ? 'Надписи переносятся, а не режутся' : 'Надписи стоят в одну линию',
           'строк ' + Object.keys(lines).length + ', самая широкая «' + String(widest.textContent || '').slice(0, 22) + '» ' + Math.round(rect(widest).width) + ' px',
-          rect(widest).width <= Math.round(rect(row).width) + 1);
+          tickReduce ? rect(widest).width <= Math.round(rect(row).width) + 1 : Object.keys(lines).length === 1);
 
         var facts = all('.hero__facts .fact');
         var perRow = byRow(facts);

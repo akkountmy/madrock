@@ -199,6 +199,18 @@ const absolute = [...html.matchAll(/(?:src|href)="(\/(?:madrock|assets)\/[^"]*)"
 if (absolute.length) fail(`в index.html абсолютные пути: ${absolute.slice(0, 5).join(', ')}`)
 else ok('пути к файлам относительные — сайт заработает в подпапке репозитория')
 
+/* 10. бегущая строка на телефоне должна бежать (кроме режима «меньше движения»):
+      правило живёт в отдельном медиазапросе, и его легко потерять при правках */
+const mobileTicker = css.match(/@media \(max-width: 780px\) and \(prefers-reduced-motion: no-preference\) \{([\s\S]*?)\n\}/)
+if (!mobileTicker) fail('нет медиазапроса бегущей строки для телефона — надписи на телефоне не будут двигаться')
+else {
+  const body = mobileTicker[1]
+  if (!/\.ticker__row\s*\{[^}]*animation:\s*tick/.test(body)) fail('на телефоне бегущей строке не задана анимация')
+  else if (!/\.ticker__row\s*\{[^}]*nowrap/.test(body)) fail('на телефоне надписи строки могут переноситься — движение сломается')
+  else if (!/\.ticker \.wrap\s*\{[^}]*overflow:\s*hidden/.test(body)) fail('полоса не режет строку по краям — страница поедет вбок')
+  else ok('бегущая строка на телефоне движется справа налево, край прячет маску')
+}
+
 /* --- отчёт --- */
 console.log('— проверка MADROCK —')
 notes.forEach((n) => console.log('  ✓ ' + n))
