@@ -1,0 +1,42 @@
+# Служебное и тяжёлое — в репозиторий не кладём.
+node_modules/
+verify/
+_site/
+*.log
+
+# Черновые папки, которые создают инструменты подготовки фото и замеров:
+# в них сотни мегабайт промежуточных кадров, репозиторию они не нужны
+.recenter-scratch/
+_glam-tmp/
+shots/
+assets/_recenter-check.jpg
+
+# Исходники фото до кадрирования: 43 файла, ~14 МБ. Сайту они не нужны.
+assets/_original/
+assets/_orig/
+assets/_orig2/
+assets/_cand/
+assets/_cand2/
+# Утверждённые кадры 1200×900, из которых собираются лёгкие версии для сайта
+assets/_crops/
+
+# Рабочие файлы бренда (снятые страницы, кандидаты логотипа)
+assets/brand/_*
+assets/brand/candidate-*
+assets/brand/logo-source.jpg
+assets/SOURCES.raw.md
+assets/SOURCES.backup.md
+images.jfif
+
+# Выгрузки поисковых страниц, по которым собирались факты:
+# в репозитории остаются только итоговые заметки research/*.md
+research/_raw*/
+research/_sites*/
+research/_more/
+research/_urls*.txt
+research/_img/
+
+*.bak.html
+
+# Служебные файлы проверок
+tools/_*.txt

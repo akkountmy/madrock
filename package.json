@@ -1,0 +1,11 @@
+{
+  "name": "madrock-coffee-site",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Сайт кофейни MADROCK COFFEE (Гомель): меню, предзаказ, личный кабинет с бонусами",
+  "type": "module",
+  "scripts": {
+    "build": "node tools/build.mjs",
+    "check": "node tools/build.mjs && node tools/render-check.mjs && node tools/check-photo-refs.mjs && node tools/check-photos.mjs"
+  }
+}

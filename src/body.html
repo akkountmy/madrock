@@ -1,0 +1,427 @@
+<header class="hdr" id="hdr">
+  <div class="wrap hdr__in">
+    <a class="logo" href="#home" aria-label="MADROCK COFFEE — на главную">
+      <span class="logo__mark">
+        <img class="logo__img" src="assets/brand/logo.png" data-rel="assets/brand/logo.png" alt="MADROCK COFFEE" onerror="if(this.dataset.rel&&!this.dataset.tried){this.dataset.tried='1';this.src=this.dataset.rel;}else{this.remove();}">
+        <svg class="logo__svg" viewBox="0 0 40 40" aria-hidden="true">
+        <rect width="40" height="40" rx="11" fill="#151515"/>
+        <rect x="1" y="1" width="38" height="38" rx="10" fill="none" stroke="#e0242e" stroke-opacity=".45"/>
+        <path d="M10 14h15v7.5A7.5 7.5 0 0 1 17.5 29h0A7.5 7.5 0 0 1 10 21.5z" fill="#e0242e"/>
+        <path d="M26 15.5h2.6a3.4 3.4 0 0 1 0 6.8H26" fill="none" stroke="#efb775" stroke-width="2.2" stroke-linecap="round"/>
+        <path d="M13 9.5c0-1.4 1.6-1.8 1.6-3.2M18 9.5c0-1.4 1.6-1.8 1.6-3.2" fill="none" stroke="#efb775" stroke-width="1.6" stroke-linecap="round" stroke-opacity=".8"/>
+      </svg>
+      </span>
+      <span class="logo__txt">
+        <span class="logo__name">MADROCK</span>
+        <span class="logo__sub">coffee · Гомель</span>
+      </span>
+    </a>
+
+    <nav class="nav" id="nav">
+      <a href="#menu">Меню</a>
+      <a href="#preorder">Предзаказ</a>
+      <a href="#bonus">Бонусы</a>
+      <a href="#about">О нас</a>
+      <a href="#contacts">Контакты</a>
+    </nav>
+
+    <div class="hdr__act">
+      <span class="status" id="status" title="Часы работы">
+        <i class="status__dot"></i><span id="status-txt">Открыто</span>
+      </span>
+      <button class="icon-btn" type="button" data-account title="Личный кабинет" aria-label="Личный кабинет">
+        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><circle cx="12" cy="8" r="3.6"/><path d="M4.5 20c1.6-3.6 4.2-5.2 7.5-5.2S18 16.4 19.5 20"/></svg>
+        <i class="icon-btn__badge" id="acc-dot">1</i>
+      </button>
+      <button class="icon-btn" id="cart-btn" title="Предзаказ" aria-label="Корзина предзаказа">
+        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><path d="M4 6h2l1.6 9.2a2 2 0 0 0 2 1.6h7.2a2 2 0 0 0 2-1.5L20.5 8H6.3"/><circle cx="10" cy="20" r="1.4"/><circle cx="17.5" cy="20" r="1.4"/></svg>
+        <i class="icon-btn__badge" id="cart-badge">0</i>
+      </button>
+      <button class="icon-btn burger" id="burger" type="button" aria-label="Меню" aria-expanded="false" aria-controls="nav"><span>☰</span></button>
+    </div>
+  </div>
+</header>
+
+<div class="ticker" aria-hidden="true">
+  <div class="wrap">
+    <div class="ticker__row" id="ticker-row"></div>
+  </div>
+</div>
+
+<main id="main">
+  <!-- ─── HERO ─────────────────────────────────────────────────────────── -->
+  <section class="hero" id="home">
+    <div class="wrap">
+      <div class="hero__box">
+        <div class="hero__bg ph" data-mark="MADROCK">
+          <!-- Главное фото прописано статично (и в WebP с вариантами по ширине):
+               браузер находит его прелоадер-сканером сразу и не ждёт скрипт.
+               Имя файла должно совпадать с PHOTO.hero в src/data.js — это
+               проверяет tools/build.mjs. -->
+          <picture>
+            <source type="image/webp" srcset="assets/hero-400.webp 400w, assets/hero-800.webp 800w, assets/hero-1280.webp 1280w" sizes="100vw">
+            <img id="hero-img" src="assets/hero-800.jpg" srcset="assets/hero-400.jpg 400w, assets/hero-800.jpg 800w, assets/hero-1280.jpg 1280w" sizes="100vw" width="1280" height="960" alt="Кофейня MADROCK COFFEE в Гомеле" fetchpriority="high" decoding="async">
+          </picture>
+        </div>
+        <div class="hero__in">
+      <h1 class="hero__title">Кофе по-итальянски. <em>Характер — по-гомельски.</em></h1>
+      <p class="hero__sub" id="hero-sub">MADROCK — кофейни в Гомеле, где варят плотный итальянский кофе, взбивают густые молочные коктейли и не жалеют сиропов. Открываемся в 7:30, работаем до 23:00. Закажите заранее — заберёте без очереди.</p>
+      <div class="hero__cta">
+        <a class="btn btn--primary btn--lg" href="#menu">Собрать предзаказ <span>→</span></a>
+        <a class="btn btn--ghost btn--lg" href="#promo">Что по акции недели</a>
+      </div>
+      <div class="hero__facts" id="hero-facts"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── АКЦИЯ НЕДЕЛИ ─────────────────────────────────────────────────── -->
+  <section class="section section--tight" id="promo">
+    <div class="wrap">
+      <div class="sec-head reveal">
+        <div class="sec-head__text">
+          <span class="kicker">Акция недели</span>
+          <h2 class="h2">Каждую неделю — новое предложение</h2>
+          <p class="lead">Мы меняем акцию по календарю: сегодня одна, в понедельник уже другая. Следите за таймером и забирайте, пока неделя не кончилась.</p>
+        </div>
+      </div>
+      <div id="promo-box" class="reveal"></div>
+    </div>
+  </section>
+
+  <!-- ─── ХИТЫ ─────────────────────────────────────────────────────────── -->
+  <section class="section" id="hits">
+    <div class="wrap">
+      <div class="sec-head reveal">
+        <div class="sec-head__text">
+          <span class="kicker">За чем возвращаются</span>
+          <h2 class="h2">Хиты бара</h2>
+        </div>
+        <a class="link-arrow" href="#menu">Всё меню</a>
+      </div>
+      <div class="grid-items" id="hits-grid"></div>
+    </div>
+  </section>
+
+  <!-- ─── ПОЧЕМУ МЫ ────────────────────────────────────────────────────── -->
+  <section class="section section--surface" id="about">
+    <div class="wrap">
+      <div class="sec-head reveal">
+        <div class="sec-head__text">
+          <span class="kicker">Кто мы</span>
+          <h2 class="h2">Пять кофеен, один характер</h2>
+          <p class="lead">MADROCK начинали с одной кофейни на Советской и выросли в пять кофеен. Мы не гонимся за модой: варим плотный итальянский кофе, взбиваем коктейли на мороженом и держим на баре больше тридцати сиропов. Интерьер с росписями, молодёжь за ноутбуками и бариста, которые помнят ваш обычный заказ.</p>
+        </div>
+      </div>
+      <div class="tiles" id="tiles"></div>
+    </div>
+  </section>
+
+  <!-- ─── БОНУСЫ ───────────────────────────────────────────────────────── -->
+  <section class="section" id="bonus">
+    <div class="wrap">
+      <div class="sec-head reveal">
+        <div class="sec-head__text">
+          <span class="kicker">MADROCK Club</span>
+          <h2 class="h2">Бонусы за каждый стакан</h2>
+          <p class="lead">Копите бонусы с каждого заказа — в зале и в предзаказе. Платите ими до 50% чека, растите в уровнях и получайте напитки в подарок. Карта живёт в личном кабинете: покажите QR на баре, и бариста не придётся спрашивать про неё отдельно. <span class="accent">Механика клуба здесь демонстрационная: уровни, проценты и подарки придуманы для макета, реальные условия уточняйте на баре.</span></p>
+        </div>
+        <button class="btn btn--brand" type="button" data-account>Открыть личный кабинет</button>
+      </div>
+
+      <div class="tiles reveal" id="bonus-steps" style="margin-bottom:var(--gap)"></div>
+
+      <div class="levels reveal">
+        <div class="stack">
+          <div class="tier">
+            <div class="between">
+              <div>
+                <span class="kicker" style="margin:0">Уровни</span>
+                <h3 class="h3">Чем чаще пьёте — тем больше капает</h3>
+              </div>
+            </div>
+            <div class="punch" id="punch-demo"></div>
+            <p class="small muted">Каждый 10-й напиток — в подарок: печати ставим в предзаказе и по QR-карте на баре. Первая печать уже стоит — за регистрацию. В демонстрации печати условные.</p>
+          </div>
+        </div>
+        <div class="stack" id="tiers"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── МЕНЮ ─────────────────────────────────────────────────────────── -->
+  <section class="section section--surface" id="menu">
+    <div class="wrap">
+      <div class="sec-head reveal">
+        <div class="sec-head__text">
+          <span class="kicker">Меню</span>
+          <h2 class="h2">Что бывает в меню</h2>
+          <p class="lead">Цены в белорусских рублях. Любой напиток можно настроить: объём, молоко, сироп, дополнительный шот. Отметьте «В предзаказ» — посмотрите, как считаются бонусы и скидка. <span class="accent">Меню и цены демонстрационные — актуальные уточняйте в кофейне.</span></p>
+        </div>
+        <div class="row">
+          <span class="toolbar__note" id="menu-count"></span>
+        </div>
+      </div>
+
+      <div class="rail" id="rail"></div>
+
+      <div class="toolbar reveal">
+        <div class="row">
+          <!-- фильтры — настоящие кнопки: с клавиатуры их можно нажать, а
+               aria-pressed сообщает скринридеру, включён фильтр или нет -->
+          <button class="mod" id="veg-toggle" type="button" aria-pressed="false">🌱 Только растительное</button>
+          <button class="mod" id="hit-toggle" type="button" aria-pressed="false">🔥 Только хиты</button>
+          <button class="mod" id="sort-toggle" type="button" aria-pressed="false">Сначала дешёвые</button>
+        </div>
+        <div class="row">
+          <!-- readonly стоит до первого касания: так браузер не подставляет в поле
+               сохранённый ранее текст (каталог из-за него выглядел пустым).
+               Скрипт снимает атрибут при первом же жесте человека. -->
+          <input class="input" id="search" type="search" name="mr-menu-query" placeholder="Поиск: капучино, коктейль, чизкейк…" style="min-width:240px" aria-label="Поиск по меню" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" readonly data-lpignore="true" data-1p-ignore data-form-type="other">
+          <button class="btn btn--soft" id="search-clear" type="button" title="Очистить поиск" hidden>✕ Очистить</button>
+        </div>
+      </div>
+
+      <div class="grid-items" id="menu-grid"></div>
+      <div class="empty" id="menu-empty" style="display:none">
+        <div class="empty__ico">🔍</div>
+        <p id="menu-empty-text">Ничего не нашли. Попробуйте другой запрос — или спросите бариста, соберём что-то вне меню.</p>
+        <button class="btn btn--primary" id="menu-reset" type="button">Показать всё меню</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── ПРЕДЗАКАЗ ────────────────────────────────────────────────────── -->
+  <section class="section" id="preorder">
+    <div class="wrap">
+      <div class="sec-head reveal">
+        <div class="sec-head__text">
+          <span class="kicker">Предзаказ</span>
+          <h2 class="h2">Приходите — и забирайте без очереди</h2>
+          <p class="lead">Так будет выглядеть предзаказ: соберите заказ, выберите кофейню и время, оставьте телефон, посмотрите расчёт. <b>Это демонстрация механики</b> — заказ остаётся в вашем браузере, в кофейню не уходит и готовить его никто не начнёт. Заказать по-настоящему можно звонком: +375 29 642-86-13.</p>
+        </div>
+        <button class="btn btn--primary" id="open-cart-2">Открыть предзаказ <span id="cart-btn-count"></span></button>
+      </div>
+
+      <div class="panel reveal">
+        <div class="steps">
+          <span class="steps__i on"><b>1</b> Собираете</span>
+          <span class="steps__i"><b>2</b> Кофейня и время</span>
+          <span class="steps__i"><b>3</b> Контакты</span>
+          <span class="steps__i"><b>4</b> Оплата</span>
+        </div>
+        <div class="tiles tiles--notes">
+          <div class="tile" style="border:none;background:transparent;padding:0">
+            <div class="tile__t">🧊 К вашему времени</div>
+            <div class="tile__d">Здесь видно, как заказ распределится по времени и кофейне. В жизни бариста запускает напиток за 10 минут до слота — но только если заказ принят кофейней, а не собран в демо.</div>
+          </div>
+          <div class="tile" style="border:none;background:transparent;padding:0">
+            <div class="tile__t">💳 Оплата картой или бонусами</div>
+            <div class="tile__d">В демонстрации считаются бонусы и остаток к оплате — деньги никуда не уходят. Онлайн-оплаты у кофейни нет: рассчитываются в кофейне при получении.</div>
+          </div>
+          <div class="tile" style="border:none;background:transparent;padding:0">
+            <div class="tile__t">🎁 Бонусы капают сразу</div>
+            <div class="tile__d">Кэшбэк от 5% до 10% и печати в карту «10-й в подарок» — условные, показывают механику клуба. Реальные условия уточняйте на баре.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel panel--flat reveal" style="margin-top:var(--gap)">
+        <h3 class="h3" style="margin-bottom:1rem">Наши кофейни</h3>
+        <div class="points-grid" id="points"></div>
+      </div>
+
+      <div class="tiles reveal" style="margin-top:var(--gap)">
+        <a class="tile" href="tel:+375296428613">
+          <div class="tile__ico">📞</div>
+          <div class="tile__t">Заказать звонком</div>
+          <div class="tile__d">+375 29 642-86-13 — флагман на Советской, 42. Второй номер: 8 044 558-71-80.</div>
+        </a>
+        <a class="tile" href="viber://chat?number=%2B375296428613">
+          <div class="tile__ico">💬</div>
+          <div class="tile__t">Viber или Telegram-звонок</div>
+          <div class="tile__d">Скиньте заказ сообщением: подтвердим в течение часа и назовём время готовности.</div>
+        </a>
+        <a class="tile" href="https://instagram.com/madrock_coffee">
+          <div class="tile__ico">📸</div>
+          <div class="tile__t">Директ в Instagram</div>
+          <div class="tile__d">@madrock_coffee — наша витрина: коктейли дня, новинки десертов и акция недели.</div>
+        </a>
+        <a class="tile" href="https://vk.com/madrockcoffe_gomel">
+          <div class="tile__ico">🅥</div>
+          <div class="tile__t">Мы во ВКонтакте</div>
+          <div class="tile__d">vk.com/madrockcoffe_gomel — отзывы гостей, афиша дегустаций и вакансии бариста.</div>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── ОТЗЫВЫ + ГАЛЕРЕЯ ─────────────────────────────────────────────── -->
+  <section class="section" id="reviews">
+    <div class="wrap">
+      <div class="sec-head reveal">
+        <div class="sec-head__text">
+          <span class="kicker">Гости</span>
+          <h2 class="h2">Что о нас говорят</h2>
+        </div>
+        <div class="row">
+          <span class="badge">Отзывы демонстрационные — пример оформления, не цитаты гостей</span>
+        </div>
+      </div>
+      <div class="revs reveal" id="revs"></div>
+
+      <div class="sec-head reveal" style="margin-top:clamp(2.8rem,6vw,4.6rem)">
+        <div class="sec-head__text">
+          <span class="kicker">Instagram</span>
+          <h2 class="h2">@madrock_coffee</h2>
+          <p class="lead">Коктейли дня, новинки десертов и жизнь бара — каждый день в сторис. Больше двух с половиной тысяч гомельчан уже подписаны.</p>
+          <p class="hint">Фотографии здесь иллюстративные: свободные лицензии Wikimedia Commons (CC0, CC BY, CC BY-SA), а не съёмка кофейни. Авторы и лицензии — в assets/SOURCES.md.</p>
+        </div>
+        <a class="btn btn--ghost" href="https://instagram.com/madrock_coffee">Открыть профиль →</a>
+      </div>
+      <div class="insta reveal" id="gallery"></div>
+    </div>
+  </section>
+
+  <!-- ─── КОНТАКТЫ ─────────────────────────────────────────────────────── -->
+  <section class="section section--surface" id="contacts">
+    <div class="wrap">
+      <div class="sec-head reveal">
+        <div class="sec-head__text">
+          <span class="kicker">Контакты</span>
+          <h2 class="h2">Заходите — мы рядом</h2>
+          <p class="lead" id="contacts-lead"></p>
+        </div>
+        <div class="row">
+          <a class="btn btn--ghost" id="tel-link" href="tel:+375296428613">Позвонить</a>
+          <a class="btn btn--primary" href="#menu">Сделать предзаказ</a>
+        </div>
+      </div>
+      <div class="contacts reveal" id="contacts-grid"></div>
+    </div>
+  </section>
+</main>
+
+<footer class="ftr">
+  <div class="wrap">
+    <div class="ftr__grid">
+      <div>
+        <a class="logo logo--ftr" href="#home" aria-label="MADROCK COFFEE — на главную">
+          <span class="logo__mark">
+            <img class="logo__img" src="assets/brand/logo.png" data-rel="assets/brand/logo.png" alt="MADROCK COFFEE" onerror="if(this.dataset.rel&&!this.dataset.tried){this.dataset.tried='1';this.src=this.dataset.rel;}else{this.remove();}">
+            <svg class="logo__svg" viewBox="0 0 40 40" aria-hidden="true">
+              <rect width="40" height="40" rx="11" fill="#151515"/>
+              <rect x="1" y="1" width="38" height="38" rx="10" fill="none" stroke="#e0242e" stroke-opacity=".45"/>
+              <path d="M10 14h15v7.5A7.5 7.5 0 0 1 17.5 29h0A7.5 7.5 0 0 1 10 21.5z" fill="#e0242e"/>
+              <path d="M26 15.5h2.6a3.4 3.4 0 0 1 0 6.8H26" fill="none" stroke="#efb775" stroke-width="2.2" stroke-linecap="round"/>
+              <path d="M13 9.5c0-1.4 1.6-1.8 1.6-3.2M18 9.5c0-1.4 1.6-1.8 1.6-3.2" fill="none" stroke="#efb775" stroke-width="1.6" stroke-linecap="round" stroke-opacity=".8"/>
+            </svg>
+          </span>
+          <span class="logo__txt">
+            <span class="logo__name">MADROCK</span>
+            <span class="logo__sub">coffee · Гомель</span>
+          </span>
+        </a>
+        <p class="small muted" style="max-width:34ch">Пять кофеен в Гомеле: итальянский кофе, густые молочные коктейли, десерты и бонусы за каждый стакан.</p>
+        <div class="socials" style="margin-top:1.2rem">
+          <a class="social" href="https://instagram.com/madrock_coffee" title="Instagram @madrock_coffee" aria-label="Instagram">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.2" cy="6.8" r="1.1" fill="currentColor" stroke="none"/></svg>
+          </a>
+          <a class="social" href="https://vk.com/madrockcoffe_gomel" title="VK" aria-label="VK">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12.8 16.6c-5 0-8.1-3.5-8.2-9.2h2.6c.1 4.2 2 6 3.4 6.3V7.4h2.5v3.7c1.4-.2 2.8-1.7 3.3-3.7h2.5c-.4 2.4-1.8 3.9-2.9 4.5 1.1.5 2.7 1.9 3.4 4.7h-2.7c-.5-1.7-1.9-3-3.6-3.2v3.2z"/></svg>
+          </a>
+          <a class="social" href="tel:+375296428613" title="Позвонить" aria-label="Позвонить">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 4h3l2 5-2.5 1.5a12 12 0 0 0 5 5L14 13l5 2v3a2 2 0 0 1-2.2 2A15 15 0 0 1 3 6.2 2 2 0 0 1 5 4z"/></svg>
+          </a>
+        </div>
+      </div>
+      <div>
+        <div class="ftr__t">Меню</div>
+        <div class="ftr__l" id="ftr-cats"></div>
+      </div>
+      <div>
+        <div class="ftr__t">Сервис</div>
+        <div class="ftr__l">
+          <a href="#preorder">Предзаказ</a>
+          <a href="#bonus">Бонусная программа</a>
+          <a href="#bonus" data-account>Личный кабинет</a>
+          <a href="#promo">Акция недели</a>
+          <a href="#contacts">Контакты и кофейни</a>
+        </div>
+      </div>
+      <div>
+        <div class="ftr__t">Кофейни</div>
+        <div class="ftr__l" id="ftr-points"></div>
+      </div>
+    </div>
+    <div class="ftr__bottom">
+      <span>© <span id="year"></span> MADROCK COFFEE · Гомель, Беларусь · реквизиты — по запросу в кофейне</span>
+      <span>Демонстрационный сайт: предзаказ никуда не отправляется, оплата не проводится, бонусы и купоны условны, данные остаются только в вашем браузере. Меню, цены, часы работы и фото требуют подтверждения у кофейни.</span>
+    </div>
+  </div>
+</footer>
+
+<!-- ─── корзина / предзаказ ─────────────────────────────────────────────── -->
+<div class="scrim" id="scrim"></div>
+<aside class="drawer" id="cart" role="dialog" aria-modal="true" aria-labelledby="cart-title" tabindex="-1">
+  <div class="drawer__h">
+    <div>
+      <div class="drawer__t" id="cart-title">Предзаказ</div>
+      <div class="small muted" id="cart-sub">Так будет выглядеть заказ — соберите и посмотрите расчёт</div>
+    </div>
+    <button class="icon-btn" id="cart-close" aria-label="Закрыть предзаказ" type="button">✕</button>
+  </div>
+  <div class="drawer__b" id="cart-body"></div>
+  <div class="drawer__f" id="cart-foot"></div>
+</aside>
+
+<!-- ─── модальное окно товара ───────────────────────────────────────────── -->
+<div class="modal" id="item-modal" role="dialog" aria-modal="true" aria-labelledby="item-title">
+  <div class="modal__c" style="position:relative" tabindex="-1">
+    <button class="icon-btn modal__x" id="item-close" aria-label="Закрыть карточку" type="button">✕</button>
+    <div id="item-body"></div>
+  </div>
+</div>
+
+<!-- ─── карточка входа и регистрации ────────────────────────────────────── -->
+<div class="modal modal--account" id="account-modal" role="dialog" aria-modal="true" aria-label="Вход и регистрация">
+  <div class="modal__c modal__c--account">
+    <button class="icon-btn modal__x" id="account-close" aria-label="Закрыть">✕</button>
+    <div class="kicker" style="margin-bottom:1rem">Личный кабинет</div>
+    <div id="acc-root"></div>
+  </div>
+</div>
+
+<!-- ─── страница личного кабинета ───────────────────────────────────────── -->
+<div class="acc-page" id="acc-page" hidden>
+  <div class="acc-page__bar">
+    <div class="wrap acc-page__barin">
+      <span class="acc-page__brand">
+        <span class="logo__mark logo__mark--sm">
+          <img class="logo__img" src="assets/brand/logo.png" data-rel="assets/brand/logo.png" alt="MADROCK COFFEE" onerror="if(this.dataset.rel&&!this.dataset.tried){this.dataset.tried='1';this.src=this.dataset.rel;}else{this.remove();}">
+        </span>
+        <span class="acc-page__title">Личный кабинет</span>
+      </span>
+      <span class="row" style="gap:.5rem">
+        <button class="btn btn--outline" id="acc-page-back" type="button">← Вернуться на сайт</button>
+        <button class="btn btn--brand" id="acc-page-logout" type="button">Выйти</button>
+      </span>
+    </div>
+  </div>
+  <div class="wrap acc-page__body" id="acc-page-body"></div>
+</div>
+
+<!-- ─── модальное окно оформления ───────────────────────────────────────── -->
+<div class="modal" id="checkout-modal" role="dialog" aria-modal="true">
+  <div class="modal__c" style="position:relative">
+    <button class="icon-btn modal__x" id="checkout-close" aria-label="Закрыть">✕</button>
+    <div id="checkout-body"></div>
+  </div>
+</div>
+
+<button class="totop" id="totop" type="button" aria-label="Наверх" title="Наверх">
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 19V6"/><path d="M5.5 12.5 12 6l6.5 6.5"/></svg>
+</button>
+
+<div class="toasts" id="toasts" role="status" aria-live="polite"></div>

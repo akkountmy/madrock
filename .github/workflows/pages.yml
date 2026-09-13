@@ -1,0 +1,96 @@
+name: Сайт MADROCK → GitHub Pages
+
+# Собирает страницу из src/, проверяет её и публикует только то, что нужно
+# сайту: index.html и папку assets. Служебные папки (research, tools, src)
+# на Pages не попадают.
+
+on:
+  push:
+    branches: [main, master]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  # Отменять чужую СБОРКУ полезно, а вот прерывать уже идущий deploy нельзя:
+  # отменённая публикация может оставить сайт на предыдущей версии
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Забрать репозиторий
+        uses: actions/checkout@v4
+
+      - name: Поставить Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Собрать страницу из исходников
+        run: node tools/build.mjs
+
+      - name: Проверить разметку, ссылки на фото и сами фото
+        run: |
+          node tools/render-check.mjs
+          node tools/check-photo-refs.mjs
+          node tools/check-photos.mjs
+
+      - name: Собрать только файлы сайта
+        run: |
+          mkdir -p _site/assets/fonts _site/assets/brand
+          cp index.html _site/index.html
+          # Публикуем по белому списку — только то, что реально нужно странице.
+          # Тогда служебные и черновые папки (исходники фото, кандидаты логотипа,
+          # заметки, скрипты) не могут просочиться на хостинг случайно.
+          find assets -maxdepth 1 -type f \( -name '*.webp' -o -name '*.jpg' \) -exec cp {} _site/assets/ \;
+          cp assets/SOURCES.md _site/assets/
+          cp assets/brand/logo.png _site/assets/brand/
+          cp assets/brand/og-cover.jpg _site/assets/brand/
+          cp assets/fonts/*.woff2 _site/assets/fonts/
+          cp assets/fonts/OFL-*.txt _site/assets/fonts/
+          cp assets/fonts/README.md _site/assets/fonts/
+          touch _site/.nojekyll
+          # свой домен: если в репозитории есть CNAME, он тоже должен попасть в публикацию
+          cp CNAME _site/CNAME 2>/dev/null || true
+          test -f _site/index.html
+          test -f _site/assets/brand/logo.png
+          test -f _site/assets/fonts/manrope-cyrillic.woff2
+          # страж: абсолютные пути сломали бы сайт в подпапке репозитория
+          if grep -qE '"(/madrock|/assets)/' _site/index.html; then
+            echo "ОШИБКА: в index.html остались абсолютные пути"; exit 1
+          fi
+          # страж скорости: сторонние домены шрифтов возвращают ожидание чужого сервера
+          if grep -qE 'fonts\.(googleapis|gstatic)\.com' _site/index.html; then
+            echo "ОШИБКА: страница снова ходит за шрифтами на сторонний домен"; exit 1
+          fi
+          # страж вариантов фото: браузер выбирает файл по имени, и без вариантов
+          # телефон снова потянет тяжёлый кадр
+          if ! ls _site/assets/hero-400.webp _site/assets/hero-1280.webp >/dev/null 2>&1; then
+            echo "ОШИБКА: нет лёгких вариантов фото"; exit 1
+          fi
+          echo "файлов к публикации: $(find _site -type f | wc -l), вес: $(du -sh _site | cut -f1)"
+
+      - name: Подготовить Pages
+        uses: actions/configure-pages@v5
+
+      - name: Загрузить страницу как артефакт
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Опубликовать
+        id: deployment
+        uses: actions/deploy-pages@v4
