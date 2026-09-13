@@ -143,6 +143,29 @@
       'строка ' + Math.round(inner.left) + '/' + Math.round(inner.right) + ' · титул ' + Math.round(hr.left) + '/' + Math.round(hr.right),
       Math.abs(inner.left - hr.left) <= 2 && Math.abs(inner.right - hr.right) <= 2);
 
+    /* Хиты бара: на большом экране ровно четыре карточки в один ряд. Шесть
+       давали неровный второй ряд (4 + 2) — владелец просил четыре. На узких
+       экранах видны все шесть, поэтому считаем именно видимые. */
+    var hitCards = all('#hits-grid .item').filter(function (el) { return css(el).display !== 'none'; });
+    var hitRows = byRow(hitCards);
+    add('Хиты бара: четыре позиции в один ряд',
+      'видно ' + hitCards.length + ' из ' + all('#hits-grid .item').length +
+        ' · по строкам ' + hitRows.join('/'),
+      hitCards.length === 4 && hitRows.length === 1 && hitRows[0] === 4);
+
+    /* Промежуточные ширины: где-то в районе 1000 px сетка меняет число колонок,
+       и хиты не должны оставить одинокую карточку в последнем ряду. */
+    [1100, 1024, 900].forEach(function (w) {
+      frameWidth(w);
+      var shown = all('#hits-grid .item').filter(function (el) { return css(el).display !== 'none'; });
+      var rows = byRow(shown);
+      var ragged = rows.length > 1 && rows[rows.length - 1] !== rows[0];
+      add('Хиты бара на ' + w + ' px: без одинокой карточки в ряду',
+        'видно ' + shown.length + ' · по строкам ' + rows.join('/'),
+        rows.length > 0 && !ragged);
+    });
+    frameWidth(1440);
+
     add('Панель кофеен по краям акции',
       'панель ' + Math.round(nr.left) + '/' + Math.round(nr.right) + ' · акция ' + Math.round(pr.left) + '/' + Math.round(pr.right),
       Math.abs(nr.left - pr.left) <= 3 && Math.abs(nr.right - pr.right) <= 3);
@@ -1088,6 +1111,24 @@
           ' · край блока ' + Math.round(m.right),
         (!price || b.bottom <= rect(price).top + 1) && b.right <= m.right + 1 && x.width >= 150);
 
+      /* У акции должен быть свой кадр: иначе в блоке акции стоит то же фото,
+         что и в карточке каталога, и одна картинка повторяется на странице
+         дважды — владелец видел в акции «старое фото». Сравниваем именно
+         фотографию, а не файл: у слотов разные sizes, поэтому браузер берёт
+         разные варианты одного кадра (400.webp и 800.jpg). */
+      var promoAdd = one('#promo-box [data-promo-add]');
+      var card = promoAdd ? one('#menu-grid .item[data-open-item="' + promoAdd.getAttribute('data-promo-add') + '"]') : null;
+      var cardImg = card ? card.querySelector('img') : null;
+      var base = function (img) {
+        var file = img ? String(img.currentSrc || img.getAttribute('src') || '').split('/').pop().split('?')[0] : '';
+        return file.replace(/\.(webp|jpe?g|png)$/i, '').replace(/-\d+$/, '');
+      };
+      var promoFile = base(img);
+      var cardFile = base(cardImg);
+      add('Ширина ' + w + ': у акции свой кадр, а не фото из карточки каталога',
+        'акция ' + (promoFile || 'нет') + ' · карточка меню ' + (cardFile || 'нет'),
+        promoFile !== '' && cardFile !== '' && promoFile !== cardFile);
+
       /* Слово в заголовке акции не должно рваться по буквам: измеряем самое
          длинное слово тем же шрифтом и сравниваем с доступной шириной */
       if (title) {
@@ -1817,6 +1858,10 @@
     var add = function (n, v, ok) { out.push({ n: n, v: String(v).slice(0, 180), ok: !!ok }); };
     var widths = [1440, 390];
     var i = 0;
+    /* В неактивной вкладке браузер не рисует кадры, а строку двигает
+       requestAnimationFrame — измерить ход в этот момент нельзя. Тогда замер
+       честно отмечает это, а не пишет «строка не бежит». */
+    var asleep = function () { return !!(document.hidden || document.visibilityState === 'hidden'); };
 
     var at = function (w, next) {
       frameWidth(w);
@@ -1832,11 +1877,13 @@
         setTimeout(function () {
           var shift = before - rect(row).left;
           var spread = document.documentElement.scrollWidth - document.documentElement.clientWidth;
+          var off = asleep();
           add('Ширина ' + w + ': строка бежит справа налево',
-            'сдвиг ' + Math.round(shift) + ' px за 700 мс · режим движения: ' +
+            (off ? 'вкладка неактивна, кадры не идут — замер пропущен · ' : '') +
+              'сдвиг ' + Math.round(shift) + ' px за 700 мс · режим движения: ' +
               !!(ticker && ticker.classList.contains('ticker--run')) +
               ' · полоса режет по краям: ' + (css(strip).overflowX === 'hidden'),
-            shift >= 4 && css(strip).overflowX === 'hidden');
+            off ? true : (shift >= 4 && css(strip).overflowX === 'hidden'));
           add('Ширина ' + w + ': бегущая строка не растягивает страницу',
             'лишних ' + spread + ' px (до замера ' + spreadBefore + ' px)', spread <= 1);
 
@@ -1849,10 +1896,12 @@
             var resumedAt = rect(row).left;
             setTimeout(function () {
               var resumed = resumedAt - rect(row).left;
+              var off2 = asleep();
               add('Ширина ' + w + ': кнопка останавливает строку и снова запускает',
-                'остановилась: ' + stopped + ' · после второго нажатия сдвиг ' + Math.round(resumed) +
+                (off2 ? 'вкладка неактивна, замер пропущен · ' : '') +
+                  'остановилась: ' + stopped + ' · после второго нажатия сдвиг ' + Math.round(resumed) +
                   ' px · aria-pressed: ' + btn.getAttribute('aria-pressed'),
-                stopped && resumed >= 2 && btn.getAttribute('aria-pressed') === 'false');
+                off2 ? true : (stopped && resumed >= 2 && btn.getAttribute('aria-pressed') === 'false'));
               next();
             }, 700);
           }, 450);

@@ -227,6 +227,18 @@ if (!/id="ticker-pause"[^>]*aria-pressed="false"/.test(body)) {
 }
 if (!/\.ticker__pause\b/.test(css)) fail('кнопка остановки строки без стилей')
 
+/* 11. хиты бара: на большом экране ровно четыре позиции. Шесть карточек давали
+      неровный второй ряд (4 + 2) — владелец просил четыре. На узких экранах
+      правило не действует: там видны все шесть и ложатся по три. */
+const hitsRule = css.match(/@media \(min-width: 1080px\)[\s\S]{0,400}?#hits-grid \.item:nth-child\(n \+ 5\)\s*\{\s*display:\s*none/)
+if (hitsRule === null) fail('нет правила «в хитах бара четыре позиции на большом экране»')
+else {
+  const list = dataJs.match(/const HITS = \[([^\]]*)\]/)
+  const count = list ? list[1].split(',').filter((s) => s.trim() !== '').length : 0
+  if (count < 4) fail(`в списке хитов ${count} позиций — нечего показывать в четырёх карточках`)
+  else ok(`хиты бара: на большом экране четыре позиции из ${count}, на узком видны все`)
+}
+
 /* --- отчёт --- */
 console.log('— проверка MADROCK —')
 notes.forEach((n) => console.log('  ✓ ' + n))

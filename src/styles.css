@@ -495,6 +495,14 @@ section[id] { scroll-margin-top: calc(var(--hdr-h) + 14px); }
 .toolbar__note { font-size: var(--fs-sm); color: var(--muted); }
 
 .grid-items { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: var(--gap); }
+/* Хиты бара: там, где в ряд помещаются четыре карточки, оставляем ровно четыре
+   позиции — шесть давали неровный второй ряд (4 + 2). Ниже этого порога держим
+   три колонки: иначе на 1014–1079 px шесть позиций снова легли бы 4 + 2. */
+@media (min-width: 861px) and (max-width: 1079px) { #hits-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+@media (min-width: 1080px) {
+  #hits-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  #hits-grid .item:nth-child(n + 5) { display: none; }
+}
 
 .item {
   display: flex; flex-direction: column; border: 1px solid var(--line); border-radius: var(--r-md);

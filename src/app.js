@@ -453,6 +453,11 @@
     var p = cur.promo;
     shownWeek = cur.week;
     var it = byId(p.item);
+    /* У акции может быть собственный кадр (p.photo): тогда в блоке акции стоит
+       не то же фото, что в карточке каталога, — иначе одна и та же картинка
+       повторяется на странице дважды. Нет своего — берём фото самой позиции. */
+    var shot = p.photo || (it ? it.img : null);
+    var shotAlt = it ? it.name : p.title;
     var off = Math.round((1 - p.promoPrice / p.price) * 100);
     $('#promo-box').innerHTML =
       '<div class="promo">' +
@@ -463,11 +468,12 @@
               '<h3 class="promo__title">' + esc(p.title) + ' <span>' + esc(p.highlight) + '</span></h3>' +
               '<p class="promo__desc">' + esc(p.desc) + '</p>' +
             '</div>' +
-            /* Маленькое фото напитка справа от текста: сразу видно, что именно
-               предлагают на этой неделе. Кадр берётся у позиции акции, поэтому
-               в понедельник он меняется вместе с предложением. */
-            (it ? '<div class="promo__photo">' +
-              ph(it.img, it.name, 'ph--zoom', it.name, '(max-width: 520px) 88px, 176px') +
+            /* Фото напитка справа от текста: сразу видно, что именно предлагают
+               на этой неделе. У акции может быть свой кадр, тогда он не
+               повторяет карточку каталога; в понедельник кадр меняется вместе
+               с предложением. */
+            (shot ? '<div class="promo__photo">' +
+              ph(shot, shotAlt, 'ph--zoom', shotAlt, '(max-width: 520px) 88px, 176px') +
               '</div>' : '') +
           '</div>' +
           '<div class="promo__price"><span class="promo__new">' + money(p.promoPrice).replace(' BYN', '') + '<small>BYN</small></span>' +

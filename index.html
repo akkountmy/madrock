@@ -522,6 +522,14 @@ section[id] { scroll-margin-top: calc(var(--hdr-h) + 14px); }
 .toolbar__note { font-size: var(--fs-sm); color: var(--muted); }
 
 .grid-items { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: var(--gap); }
+/* Хиты бара: там, где в ряд помещаются четыре карточки, оставляем ровно четыре
+   позиции — шесть давали неровный второй ряд (4 + 2). Ниже этого порога держим
+   три колонки: иначе на 1014–1079 px шесть позиций снова легли бы 4 + 2. */
+@media (min-width: 861px) and (max-width: 1079px) { #hits-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+@media (min-width: 1080px) {
+  #hits-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  #hits-grid .item:nth-child(n + 5) { display: none; }
+}
 
 .item {
   display: flex; flex-direction: column; border: 1px solid var(--line); border-radius: var(--r-md);
@@ -2199,6 +2207,10 @@ const MENU = [
     desc: 'Три шарика на выбор, со взбитыми сливками, сиропом и вафлей.', taste: ['холодно', 'сладко'], img: PHOTO.icecream, tags: ['veg'] },
 ];
 
+/* Хиты бара. Порядок важен: на большом экране показываются первые четыре
+   (ровно один ряд из четырёх карточек), на узком — все шесть, по три в ряд.
+   Раф и чизкейк уходят только на широких экранах: десерт не барный хит, а
+   сливочный раф дублирует нишу коктейля. */
 const HITS = ['cappuccino', 'bigblack', 'milkshake', 'rockcaramel', 'raf', 'cheesecake'];
 
 /* --- недельные акции ------------------------------------------------------ */
@@ -2763,6 +2775,11 @@ const FACTS = [
     var p = cur.promo;
     shownWeek = cur.week;
     var it = byId(p.item);
+    /* У акции может быть собственный кадр (p.photo): тогда в блоке акции стоит
+       не то же фото, что в карточке каталога, — иначе одна и та же картинка
+       повторяется на странице дважды. Нет своего — берём фото самой позиции. */
+    var shot = p.photo || (it ? it.img : null);
+    var shotAlt = it ? it.name : p.title;
     var off = Math.round((1 - p.promoPrice / p.price) * 100);
     $('#promo-box').innerHTML =
       '<div class="promo">' +
@@ -2773,11 +2790,12 @@ const FACTS = [
               '<h3 class="promo__title">' + esc(p.title) + ' <span>' + esc(p.highlight) + '</span></h3>' +
               '<p class="promo__desc">' + esc(p.desc) + '</p>' +
             '</div>' +
-            /* Маленькое фото напитка справа от текста: сразу видно, что именно
-               предлагают на этой неделе. Кадр берётся у позиции акции, поэтому
-               в понедельник он меняется вместе с предложением. */
-            (it ? '<div class="promo__photo">' +
-              ph(it.img, it.name, 'ph--zoom', it.name, '(max-width: 520px) 88px, 176px') +
+            /* Фото напитка справа от текста: сразу видно, что именно предлагают
+               на этой неделе. У акции может быть свой кадр, тогда он не
+               повторяет карточку каталога; в понедельник кадр меняется вместе
+               с предложением. */
+            (shot ? '<div class="promo__photo">' +
+              ph(shot, shotAlt, 'ph--zoom', shotAlt, '(max-width: 520px) 88px, 176px') +
               '</div>' : '') +
           '</div>' +
           '<div class="promo__price"><span class="promo__new">' + money(p.promoPrice).replace(' BYN', '') + '<small>BYN</small></span>' +
