@@ -268,6 +268,60 @@
     send(80, out);
   };
 
+  /* --- 79. форма регистрации на телефоне: ничего не вылезает и не режется -- */
+  var regForm = function () {
+    var out = [];
+    var add = function (n, v, ok) { out.push({ n: n, v: String(v).slice(0, 180), ok: !!ok }); };
+    var frame = window.frameElement;
+
+    [430, 390, 360].forEach(function (w) {
+      frameWidth(w);
+      var pageOpen = one('#acc-page');
+      if (pageOpen && pageOpen.hidden === false) { var lo = one('#acc-page-logout'); if (lo) lo.click(); }
+      if (!one('#auth-phone')) { var opener = one('[data-account]'); if (opener) opener.click(); }
+      var reg = one('#tab-reg');
+      if (reg) reg.click();
+
+      var card = one('#account-modal .modal__c');
+      var form = one('#account-modal .auth');
+      if (!card || !form) { add('Ширина ' + w + ': форма регистрации', 'не найдена', false); return; }
+      var cr = rect(card), fr = rect(form);
+
+      var over = all('#account-modal *').filter(function (el) {
+        return rect(el).width > 0 && el.scrollWidth > el.clientWidth + 1;
+      }).map(function (el) {
+        return (el.id ? '#' + el.id : String(el.className).split(' ').slice(0, 2).join('.')) + ' ' + el.scrollWidth + '>' + el.clientWidth;
+      });
+
+      var outside = all('#account-modal .auth *').filter(function (el) {
+        var r = rect(el);
+        return r.width > 0 && (r.right > fr.right + 1 || r.left < fr.left - 1);
+      }).map(function (el) { return el.id ? '#' + el.id : String(el.className).split(' ').slice(0, 2).join('.'); });
+
+      var fields = all('#account-modal .auth .field input').map(function (i) { return Math.round(rect(i).width); });
+      var check = one('#auth-terms');
+      var checkRow = check ? Math.round(rect(check.closest('.check')).width) : 0;
+
+      add('Ширина ' + w + ': регистрация по ширине',
+        'карточка ' + Math.round(cr.width) + ' · форма ' + Math.round(fr.width) + ' · поля ' + fields.join('/') +
+          ' · строка согласия ' + checkRow + ' · за краями формы: ' + (outside.length ? outside.slice(0, 3).join(', ') : 'нет'),
+        outside.length === 0 && cr.right <= w + 1 && fields.length >= 3 && fields.every(function (x) { return x > 40; }) &&
+          (checkRow === 0 || checkRow <= Math.round(fr.width)));
+
+      add('Ширина ' + w + ': в регистрации ничего не обрезано',
+        over.length ? over.slice(0, 4).join(', ') : 'всё внутри своих боксов',
+        over.length === 0);
+
+      var close = one('#account-close');
+      if (close) close.click();
+      var back = one('#tab-login');
+      if (back) back.click();
+    });
+
+    if (frame) frame.style.width = '1440px';
+    send(79, out);
+  };
+
   /* --- 90. раздел Instagram: шесть плиток размером с фото меню ------------ */
   var insta = function () {
     var out = [];
@@ -1654,6 +1708,7 @@
           mobile();
           flow();
           try { authFit(); } catch (e) {}
+          try { regForm(); } catch (e) { send(79, [{ n: 'Замер формы регистрации', v: String(e && e.message), ok: false }]); }
           try { menuVisible(finish); } catch (e) { finish(); }
         });
       } catch (e) {

@@ -1272,6 +1272,12 @@ body.acc-on > .totop, body.acc-on > .drawer { display: none; }
 .modal__c--account .stack--sm { gap: .55rem; }
 .modal__c--account .input { padding: .58rem .7rem; font-size: .92rem; }
 .modal__c--account .btn--block { padding: .7rem 1rem; }
+/* Кнопка в форме регистрации длинная — «Создать карту и получить 50 бонусов»,
+   а у кнопок запрещён перенос строки. На телефоне она распирала окно шире
+   экрана (нужно 376 px при 360 px экрана), и разметка уезжала. В карточке
+   кабинета разрешаем подписи переноситься и даём колонкам сжиматься. */
+.modal__c--account .btn { white-space: normal; line-height: 1.25; }
+.modal__c--account .auth, .modal__c--account .auth-grid { min-width: 0; }
 /* низкое окно — ужимаем ещё немного, чтобы прокрутка не понадобилась */
 @media (max-height: 780px) {
   .modal__c--account { max-height: 94vh; padding: .8rem .95rem; }
