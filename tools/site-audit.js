@@ -1058,7 +1058,7 @@
      элемент добавили в разметку после подписки на наблюдателя, он так и
      остаётся невидимым — размеры при этом нормальные, поэтому обычные замеры
      этого не видят. Прокручиваем страницу целиком и проверяем прозрачность. */
-  var revealedBlocks = function () {
+  var revealedBlocks = function (done) {
     var out = [];
     var add = function (n, v, ok) { out.push({ n: n, v: String(v).slice(0, 170), ok: !!ok }); };
 
@@ -1100,7 +1100,7 @@
     };
 
     walk(1440, function () {
-      walk(390, function () { send(81, out); });
+      walk(390, function () { send(81, out); if (done) done(); });
     });
   };
 
@@ -1612,9 +1612,16 @@
         /* после всех замеров подключаем проверку кнопок: она ходит по всей
            странице и не должна мешать измерениям */
         window.__madrockAuditDone = true;
-        var s = document.createElement('script');
-        s.src = '/madrock/tools/button-audit.js';
-        document.head.appendChild(s);
+        var loadButtons = function () {
+          var s = document.createElement('script');
+          s.src = '/madrock/tools/button-audit.js';
+          document.head.appendChild(s);
+        };
+        /* Проверку прозрачных блоков делаем самой последней: она прокручивает
+           страницу целиком и, если запустить её раньше, сбивает замеры
+           переходов по пунктам меню. */
+        try { revealedBlocks(loadButtons); }
+        catch (e) { send(81, [{ n: 'Замер прозрачных блоков', v: String(e && e.message), ok: false }]); loadButtons(); }
       };
       try { desktop(); } catch (e) { send(18, [{ n: 'Замер на полной ширине', v: String(e && e.message), ok: false }]); }
       try { levels(); } catch (e) { send(16, [{ n: 'Замер уровней', v: String(e && e.message), ok: false }]); }
@@ -1626,7 +1633,6 @@
       try { insta(); } catch (e) { send(90, [{ n: 'Замер раздела Instagram', v: String(e && e.message), ok: false }]); }
       try { promoPhoto(); } catch (e) { send(83, [{ n: 'Замер фото в акции', v: String(e && e.message), ok: false }]); }
       try { heroCta(); } catch (e) { send(82, [{ n: 'Замер кнопок первого экрана', v: String(e && e.message), ok: false }]); }
-      try { revealedBlocks(); } catch (e) { send(81, [{ n: 'Замер прозрачных блоков', v: String(e && e.message), ok: false }]); }
       try { footerGrid(); } catch (e) { send(95, [{ n: 'Замер подвала на телефоне', v: String(e && e.message), ok: false }]); }
       try { menuClicks(); } catch (e) { send(96, [{ n: 'Замер меню и подменю', v: String(e && e.message), ok: false }]); }
       try { phones(); } catch (e) { send(99, [{ n: 'Замер телефонных ширин', v: String(e && e.message), ok: false }]); }
