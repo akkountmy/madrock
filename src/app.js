@@ -316,8 +316,9 @@
       return '<span>' + esc(p.name) + '<br><span class="xs muted">' + esc(p.address) + ' · ' + esc(p.hours) + '</span></span>';
     }).join('');
 
+    /* «Десерты от городских кондитеров» из строки убрано по просьбе владельца */
     var tick = ['Итальянский кофе', 'Молочные коктейли <b>на мороженом</b>', 'Бонусы до <b>10%</b>', '10-й напиток <b>в подарок</b>',
-      'Открываемся в <b>7:30</b>', '<b>30+</b> сиропов', '<b>5</b> кофеен в Гомеле', 'Десерты от городских кондитеров', 'Предзаказ без очереди'];
+      'Открываемся в <b>7:30</b>', '<b>30+</b> сиропов', '<b>5</b> кофеен в Гомеле', 'Предзаказ без очереди'];
     $('#ticker-row').innerHTML = tick.concat(tick).map(function (t) { return '<span>' + t + '</span>'; }).join('');
 
     $('#tiles').innerHTML = [
@@ -449,7 +450,7 @@
                предлагают на этой неделе. Кадр берётся у позиции акции, поэтому
                в понедельник он меняется вместе с предложением. */
             (it ? '<div class="promo__photo">' +
-              ph(it.img, it.name, 'ph--zoom', it.name, '(max-width: 520px) 112px, 184px') +
+              ph(it.img, it.name, 'ph--zoom', it.name, '(max-width: 520px) 88px, 176px') +
               '</div>' : '') +
           '</div>' +
           '<div class="promo__price"><span class="promo__new">' + money(p.promoPrice).replace(' BYN', '') + '<small>BYN</small></span>' +

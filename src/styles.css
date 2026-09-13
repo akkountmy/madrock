@@ -360,13 +360,14 @@ section[id] { scroll-margin-top: calc(var(--hdr-h) + 14px); }
    того же оттенка и шаг скруглений, что у карточек сайта */
 .promo__lead { display: flex; align-items: flex-start; gap: clamp(.9rem, 2.2vw, 1.6rem); }
 .promo__lead-text { flex: 1 1 auto; min-width: 0; }
-.promo__photo { flex: 0 0 auto; width: clamp(112px, 16vw, 184px); }
+.promo__photo { flex: 0 0 auto; width: clamp(104px, 15vw, 176px); }
 .promo__photo .ph {
   aspect-ratio: 4 / 3; border-radius: var(--r-md);
   box-shadow: 0 0 0 1px rgba(var(--gold-rgb), .5), 0 0 0 6px rgba(var(--gold-rgb), .07), var(--shadow-2);
 }
 @media (max-width: 520px) {
-  .promo__photo { width: 112px; }
+  .promo__photo { width: 88px; }
+  .promo__title { font-size: 1.2rem; }
   .promo__photo .ph { border-radius: var(--r-sm); box-shadow: 0 0 0 1px rgba(var(--gold-rgb), .5), 0 0 0 4px rgba(var(--gold-rgb), .07), var(--shadow-1); }
 }
 .promo__main::before {
@@ -381,7 +382,10 @@ section[id] { scroll-margin-top: calc(var(--hdr-h) + 14px); }
 }
 .promo__flag i { width: 7px; height: 7px; border-radius: 50%; background: #fff; animation: pulse 1.6s infinite; }
 @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: .25; } }
-.promo__title { font-size: clamp(1.5rem, 3.2vw, 2.3rem); margin-bottom: .7rem; }
+/* Размер заголовка подобран по самому длинному слову акции («Лавандовый»):
+   при прежнем кегле слово не влезало в колонку текста и рвалось по буквам —
+   на 1024 px не хватало 5 px, на телефоне 34 px. */
+.promo__title { font-size: clamp(1.4rem, 2.9vw, 2.2rem); margin-bottom: .7rem; }
 .promo__title span { color: var(--gold); }
 .promo__desc { color: var(--muted); max-width: 46ch; }
 .promo__price { display: flex; align-items: baseline; gap: .8rem; margin: 1.3rem 0; }

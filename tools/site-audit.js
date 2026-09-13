@@ -1022,7 +1022,7 @@
       add('Ширина ' + w + ': фото напитка в акции загружено',
         (img ? String(img.currentSrc || img.getAttribute('src') || '').split('/').pop() + ' ' + Math.round(b.width) + '×' + Math.round(b.height) : 'нет фото') +
           ' · загружено ' + (loaded ? 'да' : 'нет'),
-        !!loaded && b.width >= 100 && b.width <= 200);
+        !!loaded && b.width >= 84 && b.width <= 200);
       add('Ширина ' + w + ': фото стоит справа от названия и описания',
         'текст ' + Math.round(x.left) + '–' + Math.round(x.right) + ' · фото ' + Math.round(b.left) + '–' + Math.round(b.right) +
           ' · название до ' + Math.round(t.right),
@@ -1032,6 +1032,21 @@
         'низ фото ' + Math.round(b.bottom) + ' · цена сверху ' + (price ? Math.round(rect(price).top) : 0) +
           ' · край блока ' + Math.round(m.right),
         (!price || b.bottom <= rect(price).top + 1) && b.right <= m.right + 1 && x.width >= 150);
+
+      /* Слово в заголовке акции не должно рваться по буквам: измеряем самое
+         длинное слово тем же шрифтом и сравниваем с доступной шириной */
+      if (title) {
+        var cs = css(title);
+        var cv = document.createElement('canvas').getContext('2d');
+        cv.font = cs.fontStyle + ' ' + cs.fontWeight + ' ' + cs.fontSize + ' ' + cs.fontFamily;
+        var widest = String(title.textContent).split(/\s+/).filter(Boolean)
+          .map(function (word) { return { w: word, px: cv.measureText(word).width }; })
+          .sort(function (a, b2) { return b2.px - a.px; })[0];
+        var avail = title.clientWidth - 1;
+        add('Ширина ' + w + ': слово в заголовке акции не переносится',
+          widest ? '«' + widest.w + '» ' + Math.round(widest.px) + ' px при доступных ' + Math.round(avail) + ' px' : 'заголовка нет',
+          !!widest && widest.px <= avail);
+      }
     };
 
     /* Снимок в акции отложенный: замер идёт без прокрутки, и браузер его не
