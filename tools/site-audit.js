@@ -994,6 +994,63 @@
     }, 350);
   };
 
+  /* --- 82. кнопки первого экрана: одинаковые по размеру ------------------- */
+  var heroCta = function () {
+    var out = [];
+    var add = function (n, v, ok) { out.push({ n: n, v: String(v).slice(0, 150), ok: !!ok }); };
+
+    [1440, 1024, 780, 430, 390, 360].forEach(function (w) {
+      frameWidth(w);
+      var btns = all('.hero__cta .btn');
+      if (btns.length < 2) { add('Ширина ' + w + ': кнопки первого экрана', 'не найдены', false); return; }
+      var sizes = btns.map(function (b) { return { w: Math.round(rect(b).width), h: Math.round(rect(b).height), t: String(b.textContent).trim().slice(0, 22) }; });
+      var dw = Math.max.apply(null, sizes.map(function (s) { return s.w; })) - Math.min.apply(null, sizes.map(function (s) { return s.w; }));
+      var dh = Math.max.apply(null, sizes.map(function (s) { return s.h; })) - Math.min.apply(null, sizes.map(function (s) { return s.h; }));
+      var stack = sizes.length === 2 && Math.abs(rect(btns[0]).top - rect(btns[1]).top) > 4;
+      var wrap = rect(one('.hero__cta'));
+      var inside = sizes.every(function () { return true; }) &&
+        btns.every(function (b) { var r = rect(b); return r.left >= wrap.left - 1 && r.right <= wrap.right + 1; });
+      add('Ширина ' + w + ': кнопки первого экрана одинаковые',
+        sizes.map(function (s) { return s.w + '×' + s.h; }).join(' · ') +
+          (stack ? ' (в столбик)' : ' (в ряд)') + ' · разница ширины ' + dw + ', высоты ' + dh,
+        dw <= 2 && dh <= 2 && inside && sizes.every(function (s) { return w > 780 || s.h >= 44; }));
+
+      /* Дальше — все ряды с однотипными кнопками по всему сайту: кнопки одного
+         класса в одной строке обязаны совпадать по размеру, иначе ряд выглядит
+         неаккуратно (именно так было на первом экране). */
+      var groups = all('.row, .hero__cta, .sec-head, .promo__cta, .modal__c .row')
+        .map(function (row) {
+          var btns = Array.prototype.slice.call(row.children).filter(function (el) {
+            return el.classList && el.classList.contains('btn') && rect(el).height > 0;
+          });
+          if (btns.length < 2) return null;
+          var tops = btns.map(function (b) { return Math.round(rect(b).top); });
+          if (Math.max.apply(null, tops) - Math.min.apply(null, tops) > 4) return null;  // кнопки в разных строках
+          var byClass = {};
+          btns.forEach(function (b) {
+            var key = Array.prototype.slice.call(b.classList).filter(function (c) { return c.indexOf('btn') === 0; }).sort().join(' ');
+            (byClass[key] = byClass[key] || []).push(b);
+          });
+          var bad = [];
+          Object.keys(byClass).forEach(function (key) {
+            var ws = byClass[key].map(function (b) { return Math.round(rect(b).width); });
+            var hs = byClass[key].map(function (b) { return Math.round(rect(b).height); });
+            if (ws.length < 2) return;
+            if (Math.max.apply(null, ws) - Math.min.apply(null, ws) > 2 || Math.max.apply(null, hs) - Math.min.apply(null, hs) > 2) {
+              bad.push(key + ': ' + ws.join('/') + ' px');
+            }
+          });
+          return bad.length ? bad.join(', ') : null;
+        })
+        .filter(Boolean);
+      add('Ширина ' + w + ': однотипные кнопки в ряду одного размера',
+        groups.length ? 'неровные ряды: ' + groups.slice(0, 3).join(' | ') : 'все ряды ровные',
+        groups.length === 0);
+    });
+
+    send(82, out);
+  };
+
   /* --- 2. прокрутка: логотип и переходы по меню -------------------------- */
   var anchors = function (done) {
     var out = [];
@@ -1515,6 +1572,7 @@
       try { contacts(); } catch (e) { send(10, [{ n: 'Замер контактов', v: String(e && e.message), ok: false }]); }
       try { insta(); } catch (e) { send(90, [{ n: 'Замер раздела Instagram', v: String(e && e.message), ok: false }]); }
       try { promoPhoto(); } catch (e) { send(83, [{ n: 'Замер фото в акции', v: String(e && e.message), ok: false }]); }
+      try { heroCta(); } catch (e) { send(82, [{ n: 'Замер кнопок первого экрана', v: String(e && e.message), ok: false }]); }
       try { footerGrid(); } catch (e) { send(95, [{ n: 'Замер подвала на телефоне', v: String(e && e.message), ok: false }]); }
       try { menuClicks(); } catch (e) { send(96, [{ n: 'Замер меню и подменю', v: String(e && e.message), ok: false }]); }
       try { phones(); } catch (e) { send(99, [{ n: 'Замер телефонных ширин', v: String(e && e.message), ok: false }]); }
