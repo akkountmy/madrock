@@ -783,8 +783,10 @@
       var wrapRect = rect(one('#hits .wrap'));
       add('Телефон ' + w + ': хиты бара — сетка ' + hitRows.join('+'),
         'плиток ' + hits.length + ' · ширина ' + (hitW[0] || 0) + ' · высота ' + (hitH[0] || 0) +
-          ' · разброс ширины ' + wSpread + ', высоты ' + hSpread,
-        hits.length === 6 && hitRows.length === 2 && hitRows[0] === 3 && hitRows[1] === 3 && wSpread <= 1 && hSpread <= 1);
+          ' · разброс ширины ' + wSpread + ', высоты ' + hSpread +
+          ' · показано ' + hits.filter(function (c) { return parseFloat(css(c).opacity) > 0.05; }).length,
+        hits.length === 6 && hitRows.length === 2 && hitRows[0] === 3 && hitRows[1] === 3 && wSpread <= 1 && hSpread <= 1 &&
+          hits.every(function (c) { return parseFloat(css(c).opacity) > 0.05; }));
       add('Телефон ' + w + ': хиты бара внутри полей и без обрезки',
         'сетка до ' + Math.round(gridRect.right) + ' при крае ' + Math.round(wrapRect.right) + ' · выходят ' + over,
         gridRect.right <= wrapRect.right + 1 && over === 0);
@@ -1049,6 +1051,57 @@
     });
 
     send(82, out);
+  };
+
+  /* --- 81. ни один блок не остался прозрачным -----------------------------
+     Карточки и секции появляются через .reveal (прозрачные до показа). Если
+     элемент добавили в разметку после подписки на наблюдателя, он так и
+     остаётся невидимым — размеры при этом нормальные, поэтому обычные замеры
+     этого не видят. Прокручиваем страницу целиком и проверяем прозрачность. */
+  var revealedBlocks = function () {
+    var out = [];
+    var add = function (n, v, ok) { out.push({ n: n, v: String(v).slice(0, 170), ok: !!ok }); };
+
+    var check = function (w) {
+      var hidden = all('.reveal').filter(function (el) {
+        var r = rect(el);
+        return r.height > 10 && parseFloat(css(el).opacity) < 0.9;
+      });
+      add('Ширина ' + w + ': блоки показаны, а не прозрачные',
+        hidden.length
+          ? 'прозрачных ' + hidden.length + ': ' + hidden.slice(0, 4).map(function (el) {
+            return String(el.className).split(' ').slice(0, 2).join('.') + ' (' + css(el).opacity + ')';
+          }).join(', ')
+          : 'все видимые блоки показаны (' + all('.reveal').length + ' шт на странице)',
+        hidden.length === 0);
+    };
+
+    var walk = function (w, done) {
+      frameWidth(w);
+      /* плавная прокрутка страницы мешала бы последующим замерам: пока она
+         анимируется, программный переход к разделу отменяется */
+      var root = document.documentElement;
+      var was = root.style.scrollBehavior;
+      root.style.scrollBehavior = 'auto';
+      var step = Math.round(Math.max(300, window.innerHeight * 0.8));
+      var y = 0;
+      var tick = function () {
+        window.scrollTo(0, y);
+        y += step;
+        if (y < document.body.scrollHeight) { setTimeout(tick, 40); return; }
+        window.scrollTo(0, 0);
+        setTimeout(function () {
+          check(w);
+          root.style.scrollBehavior = was;
+          done();
+        }, 700);
+      };
+      tick();
+    };
+
+    walk(1440, function () {
+      walk(390, function () { send(81, out); });
+    });
   };
 
   /* --- 2. прокрутка: логотип и переходы по меню -------------------------- */
@@ -1573,6 +1626,7 @@
       try { insta(); } catch (e) { send(90, [{ n: 'Замер раздела Instagram', v: String(e && e.message), ok: false }]); }
       try { promoPhoto(); } catch (e) { send(83, [{ n: 'Замер фото в акции', v: String(e && e.message), ok: false }]); }
       try { heroCta(); } catch (e) { send(82, [{ n: 'Замер кнопок первого экрана', v: String(e && e.message), ok: false }]); }
+      try { revealedBlocks(); } catch (e) { send(81, [{ n: 'Замер прозрачных блоков', v: String(e && e.message), ok: false }]); }
       try { footerGrid(); } catch (e) { send(95, [{ n: 'Замер подвала на телефоне', v: String(e && e.message), ok: false }]); }
       try { menuClicks(); } catch (e) { send(96, [{ n: 'Замер меню и подменю', v: String(e && e.message), ok: false }]); }
       try { phones(); } catch (e) { send(99, [{ n: 'Замер телефонных ширин', v: String(e && e.message), ok: false }]); }

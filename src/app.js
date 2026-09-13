@@ -613,9 +613,14 @@
     var clearBtn = $('#search-clear');
     if (clearBtn) clearBtn.hidden = !filter.q;
 
-    bindReveal();
+    /* Хиты бара рисуем ДО наблюдения за появлением блоков: карточки создаются
+       с классом .reveal (прозрачные до первого показа), и если добавить их
+       после bindReveal(), наблюдение их уже не увидит — блок оставался
+       невидимым, хотя место на странице занимал. Ровно это и происходило
+       после любой перерисовки каталога. */
     var cur = currentPromo().promo;
     $('#hits-grid').innerHTML = HITS.map(function (id) { return byId(id); }).filter(Boolean).map(itemCard).join('');
+    bindReveal();
   };
 
   /* Сброс поиска и фильтров: возвращает всё меню одним нажатием */
@@ -1656,7 +1661,15 @@
         });
       }, { rootMargin: '0px 0px -60px 0px', threshold: .08 });
     }
-    $$('.reveal:not(.in)').forEach(function (el) { revealOb.observe(el); });
+    $$('.reveal:not(.in)').forEach(function (el) {
+      /* Что уже видно на экране — показываем сразу, не ожидая наблюдателя:
+         блок не должен оставаться прозрачным ни из-за задержки, ни из-за
+         того, что элемент добавили в разметку после подписки. Анимация
+         остаётся для того, что ниже экрана. */
+      var r = el.getBoundingClientRect();
+      if (r.top < window.innerHeight + 200 && r.bottom > -200) el.classList.add('in');
+      else revealOb.observe(el);
+    });
   };
 
   /* --- адрес страницы кабинета -------------------------------------------
