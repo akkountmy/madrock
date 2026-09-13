@@ -410,11 +410,12 @@
         '<span class="rev__src">' + esc(r.s) + '</span></span></div></article>';
     }).join('');
 
-    /* Плитки ведут в профиль: подсказка при наведении и фокусе честно
-       обещает переход, а не просто подсвечивает картинку */
+    /* Плитки ведут в профиль. Подписи поверх фотографий убраны по просьбе
+       владельца — название кадра остаётся в alt (его читают скринридер и
+       поисковик), а на самой картинке текста нет. */
     $('#gallery').innerHTML = GALLERY.map(function (g) {
-      return '<a class="insta__t" href="https://instagram.com/' + esc(SHOP.instagram) + '" target="_blank" rel="noopener">' +
-        ph(g.img, 'IG', 'ph--zoom', g.cap, '(max-width: 780px) 31vw, 280px') + '<span class="insta__cap">' + esc(g.cap) + '</span></a>';
+      return '<a class="insta__t" href="https://instagram.com/' + esc(SHOP.instagram) + '" target="_blank" rel="noopener" title="' + esc(g.cap) + '">' +
+        ph(g.img, 'IG', 'ph--zoom', g.cap, '(max-width: 780px) 31vw, 280px') + '</a>';
     }).join('');
   };
 

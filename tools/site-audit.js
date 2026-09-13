@@ -278,7 +278,15 @@
       var tiles = all('#gallery .insta__t');
       if (tiles.length === 0) { add('Ширина ' + w + ': раздел Instagram', 'плиток нет', false); return; }
       var first = rect(tiles[0]);
-      var caps = tiles.filter(function (t) { return !!t.querySelector('.insta__cap'); }).length;
+      /* Подписи поверх плиток убраны по просьбе владельца: проверяем наоборот —
+         текста на фотографиях нет, а название кадра осталось в alt и title */
+      var caps = tiles.filter(function (t) {
+        return !!t.querySelector('.insta__cap') || String(t.textContent || '').trim() !== '';
+      }).length;
+      var labelled = tiles.filter(function (t) {
+        var img = t.querySelector('img');
+        return !!img && String(img.getAttribute('alt') || '').trim().length > 2;
+      }).length;
       var broken = tiles.filter(function (t) {
         var img = t.querySelector('img');
         return !img || (img.complete && img.naturalWidth === 0);
@@ -307,7 +315,9 @@
       add('Ширина ' + w + ': плитки одинаковые, кадр ' + (w > 780 ? '4:3' : '1:1'),
         sizes[0] + ' · разброс ширины ' + spread,
         Math.abs(first.width / first.height - (w > 780 ? 4 / 3 : 1)) < 0.03 && spread <= 1);
-      add('Ширина ' + w + ': подписи у всех плиток', caps + ' из ' + tiles.length, caps === tiles.length);
+      add('Ширина ' + w + ': подписей на фотографиях нет, название в alt',
+        'с текстом поверх фото: ' + caps + ' · с подписью в alt: ' + labelled + ' из ' + tiles.length,
+        caps === 0 && labelled === tiles.length);
       add('Ширина ' + w + ': фотографии плиток целые', broken ? broken + ' сломано' : 'все на месте', broken === 0);
       var wrap = rect(one('#reviews .wrap'));
       add('Ширина ' + w + ': плитки внутри полей сайта',

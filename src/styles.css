@@ -743,14 +743,12 @@ section[id] { scroll-margin-top: calc(var(--hdr-h) + 14px); }
    Instagram рисовался квадратом внутри кадра 4:3 и низ срезался */
 .insta__t .ph { width: 100%; height: 100%; }
 .insta__t:hover img { transform: scale(1.08); }
-.insta__t::after { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, transparent 45%, rgba(13, 11, 10, .8)); opacity: 0; transition: opacity .3s; }
-.insta__t:hover::after { opacity: 1; }
-.insta__cap { position: absolute; left: .7rem; bottom: .6rem; z-index: 2; font-size: var(--fs-xs); color: #fff; opacity: 0; transition: opacity .3s; font-weight: 600; }
-.insta__t:hover .insta__cap { opacity: 1; }
-/* плитка — ссылка в профиль: подпись видно и с клавиатуры */
+/* Подписи поверх плиток убраны по просьбе владельца: фотографии читаются
+   сами, а текст на снимке мешал. Название кадра осталось в alt — его
+   прочитает скринридер и поисковик, но на картинке его не видно.
+   Плитка — ссылка в профиль. */
 a.insta__t { display: block; }
 a.insta__t:focus-visible { outline: 2px solid var(--amber); outline-offset: 3px; }
-a.insta__t:focus-visible .insta__cap { opacity: 1; }
 
 .revs { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: var(--gap); }
 .rev { border: 1px solid var(--line); border-radius: var(--r-md); padding: 1.4rem; background: var(--surface); display: flex; flex-direction: column; gap: .8rem; }
@@ -830,7 +828,6 @@ a.insta__t:focus-visible .insta__cap { opacity: 1; }
 /* На тач-устройствах наведения нет: подписи плиток показываем сразу, а
    «залипающие» после касания увеличения и подъёмы карточек отключаем */
 @media (hover: none) {
-  .insta__cap, .insta__t::after { opacity: 1; }
   .insta__t:hover img, .ph--zoom:hover img { transform: none; }
   .item:hover, .tile:hover, .point-card:hover, .social:hover { transform: none; }
 }
